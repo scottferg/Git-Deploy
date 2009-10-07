@@ -5,6 +5,7 @@ import getopt
 findParentCommit = lambda x: x.data[53:93]
 
 def parseFileList(diff):
+    '''Parses filenames out of a diff'''
     result = []
 
     while True:
@@ -22,6 +23,7 @@ def parseFileList(diff):
     return result
 
 def findChangedFiles(commit):
+    '''Finds all of the affected files within a given commit'''
     try:
         repo = git.Repo(os.getcwd())
         blob = repo.blob(commit)
