@@ -121,10 +121,6 @@ class MainUI:
 
         return
 
-    def deleteEvent(self, widget, event, data = None):
-        gtk.main_quit()
-        return
-
     def __init__(self):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
@@ -145,7 +141,7 @@ class MainUI:
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
         # Attach event handlers
-        self.window.connect('delete_event', self.deleteEvent)
+        self.window.connect('delete_event', lambda q: gtk.main_quit())
         glade.signal_autoconnect(self)
 
         # Display the window
