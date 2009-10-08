@@ -32,7 +32,7 @@ def findChangedFiles(commit):
         print 'Error: Not a git repository'
         return
 
-    print "\n".join(["%s" % x for x in parseFileList(diff)])
+	return parseFileList(diff)
 
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
@@ -42,7 +42,7 @@ def main():
             commit = arg
 
     try:
-        findChangedFiles(commit);
+    	print "\n".join(["%s" % x for x in findChangedFiles(commit)])
     except UnboundLocalError:
         print 'Usage: git_handler.py [-c|--commit] <commit>'
 
