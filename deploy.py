@@ -134,8 +134,14 @@ class MainUI:
         self.pixmap.draw_rectangle(widget.get_style().white_gc, True, 0, 0, width, height)
 
         self.graphicsContext.set_foreground(self.colors['green'])
-        self.pixmap.draw_line(self.graphicsContext, 0, 0, width - 100, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, width, height, width - 100, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
+        self.pixmap.draw_line(self.graphicsContext, width + 100, height + 100, width - 100, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
+        self.pixmap.draw_line(self.graphicsContext, width + 100, height + 100, width - 100, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
+        self.pixmap.draw_line(self.graphicsContext, width + 100, height + 100, width - 100, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
 
         return True
 
