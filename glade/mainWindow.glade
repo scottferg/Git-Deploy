@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Thu Oct 08 13:20:39 2009 -->
+<!--Generated with glade3 3.4.3 on Thu Oct 08 13:44:44 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="mainWindow">
-    <property name="width_request">380</property>
+    <property name="width_request">580</property>
     <property name="height_request">380</property>
     <property name="border_width">8</property>
+    <property name="title" translatable="yes">Git Deploy</property>
     <child>
       <widget class="GtkVBox" id="vbox1">
         <property name="visible">True</property>
@@ -101,10 +102,18 @@
         <property name="visible">True</property>
         <property name="spacing">5</property>
         <child>
-          <widget class="GtkTextView" id="txtFileList">
+          <widget class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
-            <property name="editable">False</property>
+            <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
+            <property name="shadow_type">GTK_SHADOW_IN</property>
+            <child>
+              <widget class="GtkTextView" id="txtFileList">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="editable">False</property>
+              </widget>
+            </child>
           </widget>
         </child>
         <child>

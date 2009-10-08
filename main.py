@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -17,18 +19,6 @@ class MainUI:
                 return True
 
         return False
-
-    def makeListModel(self):
-        '''Create the empty tree store'''
-        self.listStore = gtk.ListStore(str, str)
-        return
-
-    def getListModel(self):
-        '''Returns the list model'''
-        if self.listStore:
-            return self.listStore
-        else:
-            return None
 
     def addCommit(self, hash):
         '''Add a commit to the list'''
@@ -52,6 +42,18 @@ class MainUI:
                 pass
 
         return
+
+    def makeListModel(self):
+        '''Create the empty tree store'''
+        self.listStore = gtk.ListStore(str, str)
+        return
+
+    def getListModel(self):
+        '''Returns the list model'''
+        if self.listStore:
+            return self.listStore
+        else:
+            return None
 
     def makeListView(self, model):
         '''Initialize the empty list'''
@@ -108,7 +110,7 @@ class MainUI:
                     # If the file is not found, add it to the list
                     fileList.append(file)
 
-        self.fileListWindow = fileListWindow.FileListWindow('\n'.join(['%s' % x for x in fileList]))
+        self.fileListWindow = fileListWindow.FileListWindow('\n'.join(['%s' % x for x in sorted(fileList)]))
 
         return
 
