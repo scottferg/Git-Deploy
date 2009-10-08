@@ -4,7 +4,10 @@ import getopt
 
 findParentCommit = lambda x: x.data[53:93]
 
-repo = git.Repo(os.getcwd())
+try:
+    repo = git.Repo(os.getcwd())
+except git.errors.InvalidGitRepositoryError:
+    print 'Error: Not a git repository'
 
 def parseFileList(diff):
     '''Parses filenames out of a diff'''
