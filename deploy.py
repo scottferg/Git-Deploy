@@ -125,10 +125,6 @@ class MainUI:
         gtk.main_quit()
         return
 
-    def destroy(self, widget, data = None):
-        gtk.main_quit()
-        return
-
     def __init__(self):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
