@@ -4,6 +4,8 @@ import getopt
 
 findParentCommit = lambda x: x.data[53:93]
 
+repo = git.Repo(os.getcwd())
+
 def parseFileList(diff):
     '''Parses filenames out of a diff'''
     result = []
@@ -25,7 +27,6 @@ def parseFileList(diff):
 def findChangedFiles(commit):
     '''Finds all of the affected files within a given commit'''
     try:
-        repo = git.Repo(os.getcwd())
         blob = repo.blob(commit)
         diff = repo.diff(repo.commit(commit), repo.commit(findParentCommit(blob)))
     except git.errors.GitCommandError:
@@ -34,6 +35,14 @@ def findChangedFiles(commit):
 
 	return parseFileList(diff)
 
+def getCommitMessage(commit):
+    '''Finds the commit message for the specified commit'''
+    try:
+        return repo.commit(commit).message
+    except git.errors.GitCommandError:
+        print 'Error: Commit not found'
+        return False
+    
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
 
@@ -43,8 +52,11 @@ def main():
 
     try:
     	print "\n".join(["%s" % x for x in findChangedFiles(commit)])
+        print "\n" + getCommitMessage(commit)
     except UnboundLocalError:
         print 'Usage: git_handler.py [-c|--commit] <commit>'
+    except TypeError:
+        print 'Commit not found'
 
 if __name__ == '__main__':
     main()
