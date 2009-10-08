@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Thu Oct 08 11:20:48 2009 -->
+<!--Generated with glade3 3.4.3 on Thu Oct 08 12:55:58 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="mainWindow">
     <property name="width_request">380</property>
@@ -28,7 +28,15 @@
           <widget class="GtkVBox" id="listViewBox">
             <property name="visible">True</property>
             <child>
-              <placeholder/>
+              <widget class="GtkScrolledWindow" id="wndScrolledWindow">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                <child>
+                  <placeholder/>
+                </child>
+              </widget>
             </child>
           </widget>
           <packing>
@@ -95,6 +103,7 @@
           <widget class="GtkTextView" id="txtFileList">
             <property name="visible">True</property>
             <property name="can_focus">True</property>
+            <property name="editable">False</property>
           </widget>
         </child>
         <child>

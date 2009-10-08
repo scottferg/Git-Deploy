@@ -11,6 +11,13 @@ import fileListWindow
 
 class MainUI:
 
+    def checkCommitInList(self, commit):
+        for row in self.listStore:
+            if row[0] == commit:
+                return True
+
+        return False
+
     def makeListModel(self):
         '''Create the empty tree store'''
         self.listStore = gtk.ListStore(str, str)
@@ -25,21 +32,24 @@ class MainUI:
 
     def addCommit(self, hash):
         '''Add a commit to the list'''
+
         commit = gitHandler.getCommitMessage(hash)
 
-        # Nitpicky formatting, even though 'head' will still
-        # work
-        if hash.upper() == 'HEAD':
-            hash = 'HEAD'
-        else:
-            hash = hash.lower()
+        # Don't add a commit twice
+        if not self.checkCommitInList(commit['hash'][:10]):
+            # Nitpicky formatting, even though 'head' will still
+            # work
+            if hash.upper() == 'HEAD':
+                hash = 'HEAD'
+            else:
+                hash = hash.lower()
 
-        if commit:
-            self.listStore.append([commit['hash'][:10], 
-                                   commit['message']])
-        else:
-            # TODO: Pop an alert here
-            pass
+            if commit:
+                self.listStore.append([commit['hash'][:10], 
+                commit['message']])
+            else:
+                # TODO: Pop an alert here
+                pass
 
         return
 
@@ -80,15 +90,24 @@ class MainUI:
     def onBtnDisplayListClicked(self, widget, data = None):
         '''Handler for display button'''
 
-        iter = gtk.TreeIter()
-        result = []
+        # TODO: This should be threaded
 
-        while iter is not None:
-            result.append(self.listStore.get_value(iter, 1)
+        commitList = []
+        fileList = []
 
-        print result
+        commitList.extend(['%s' % row[0] for row in self.listStore])
 
-        fileList = gitHandler.findChangedFiles('HEAD')
+        for commit in commitList:
+            result = gitHandler.findChangedFiles(commit)
+
+            # Don't add the same filename twice
+            for file in result:
+                try:
+                    fileList.index(file)
+                except ValueError:
+                    # If the file is not found, add it to the list
+                    fileList.append(file)
+
         self.fileListWindow = fileListWindow.FileListWindow('\n'.join(['%s' % x for x in fileList]))
 
         return
@@ -108,7 +127,7 @@ class MainUI:
         self.btnAdd = glade.get_widget('btnAdd')
         self.btnDisplayList = glade.get_widget('btnDisplayList')
         self.txtCommitEntry = glade.get_widget('txtCommitEntry')
-        self.listViewBox = glade.get_widget('listViewBox')
+        self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
         self.window = glade.get_widget('mainWindow')
 
         # Initialize the treestore
@@ -116,7 +135,9 @@ class MainUI:
         self.model = self.getListModel()
         self.treeView = self.makeListView(self.model)
 
-        self.listViewBox.pack_start(self.treeView)
+        # Add it to the scrollable window
+        self.wndScrolledWindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
+        self.wndScrolledWindow.add_with_viewport(self.treeView)
 
         # Attach event handlers
         self.window.connect('delete_event', self.deleteEvent)
