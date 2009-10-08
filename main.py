@@ -112,6 +112,13 @@ class MainUI:
 
         return
 
+    def onTxtCommitEntryKeyDown(self, widget, event, data = None):
+        if event.keyval == 65293:
+            self.addCommit(self.txtCommitEntry.get_text())
+            self.txtCommitEntry.set_text('')
+
+        return
+
     def deleteEvent(self, widget, event, data = None):
         gtk.main_quit()
         return
