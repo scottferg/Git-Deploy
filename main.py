@@ -79,6 +79,15 @@ class MainUI:
 
     def onBtnDisplayListClicked(self, widget, data = None):
         '''Handler for display button'''
+
+        iter = gtk.TreeIter()
+        result = []
+
+        while iter is not None:
+            result.append(self.listStore.get_value(iter, 1)
+
+        print result
+
         fileList = gitHandler.findChangedFiles('HEAD')
         self.fileListWindow = fileListWindow.FileListWindow('\n'.join(['%s' % x for x in fileList]))
 
