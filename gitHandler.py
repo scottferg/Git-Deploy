@@ -33,12 +33,15 @@ def findChangedFiles(commit):
         print 'Error: Not a git repository'
         return
 
-	return parseFileList(diff)
+    return parseFileList(diff)
 
 def getCommitMessage(commit):
     '''Finds the commit message for the specified commit'''
     try:
-        return repo.commit(commit).message
+        commit = repo.commit(commit)
+
+        return {'hash' : commit.id,
+                'message' : commit.message}
     except git.errors.GitCommandError:
         print 'Error: Commit not found'
         return False
@@ -52,7 +55,6 @@ def main():
 
     try:
     	print "\n".join(["%s" % x for x in findChangedFiles(commit)])
-        print "\n" + getCommitMessage(commit)
     except UnboundLocalError:
         print 'Usage: git_handler.py [-c|--commit] <commit>'
     except TypeError:

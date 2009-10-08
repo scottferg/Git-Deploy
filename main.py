@@ -4,7 +4,10 @@ import gtk
 import gtk.glade
 import gobject
 
+import os, sys
+
 import gitHandler
+import fileListWindow
 
 class MainUI:
 
@@ -22,10 +25,22 @@ class MainUI:
 
     def addCommit(self, hash):
         '''Add a commit to the list'''
-        message = gitHandler.getCommitMessage(hash)
+        commit = gitHandler.getCommitMessage(hash)
 
-        if message:
-            self.listStore.append([hash, message])
+        # Nitpicky formatting, even though 'head' will still
+        # work
+        if hash.upper() == 'HEAD':
+            hash = 'HEAD'
+        else:
+            hash = hash.lower()
+
+        if commit:
+            self.listStore.append([commit['hash'][:10], 
+                                   commit['message']])
+        else:
+            # TODO: Pop an alert here
+            pass
+
         return
 
     def makeListView(self, model):
@@ -41,6 +56,7 @@ class MainUI:
 
         self.column1 = gtk.TreeViewColumn('Commit', self.commitRenderer, text = 0)
         self.column1.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.column1.set_min_width(90)
         self.column1.set_expand(False)
 
         self.column2 = gtk.TreeViewColumn('Description', self.descriptionRenderer, text = 1)
@@ -55,9 +71,17 @@ class MainUI:
 
         return self.treeView
     
-    def onBtnOkayClicked(self, widget, data = None):
+    def onBtnAddClicked(self, widget, data = None):
+        '''Handler for okay button'''
         self.addCommit(self.txtCommitEntry.get_text())
         self.txtCommitEntry.set_text('')
+        return
+
+    def onBtnDisplayListClicked(self, widget, data = None):
+        '''Handler for display button'''
+        fileList = gitHandler.findChangedFiles('HEAD')
+        self.fileListWindow = fileListWindow.FileListWindow('\n'.join(['%s' % x for x in fileList]))
+
         return
 
     def deleteEvent(self, widget, event, data = None):
@@ -70,9 +94,10 @@ class MainUI:
 
     def __init__(self):
         # Pull widgets from Glade
-        glade = gtk.glade.XML('glade/mainWindow.glade')
+        glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
 
-        self.btnOkay = glade.get_widget('btnOkay')
+        self.btnAdd = glade.get_widget('btnAdd')
+        self.btnDisplayList = glade.get_widget('btnDisplayList')
         self.txtCommitEntry = glade.get_widget('txtCommitEntry')
         self.listViewBox = glade.get_widget('listViewBox')
         self.window = glade.get_widget('mainWindow')
