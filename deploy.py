@@ -120,6 +120,30 @@ class MainUI:
             self.txtCommitEntry.set_text('')
 
         return
+    def onDrawingAreaConfigure(self, widget, event):
+        self.graphicsContext = widget.window.new_gc()
+        self.colormap = self.graphicsContext.get_colormap()
+        self.colors = {}
+        self.colors['green'] = self.colormap.alloc_color('green')
+        self.colors['white'] = self.colormap.alloc_color('white')
+
+        x, y, width, height = widget.get_allocation()
+        self.pixmap = gtk.gdk.Pixmap(widget.window, width, height)
+
+        self.graphicsContext.set_foreground(self.colors['white'])
+        self.pixmap.draw_rectangle(widget.get_style().white_gc, True, 0, 0, width, height)
+
+        self.graphicsContext.set_foreground(self.colors['green'])
+        self.pixmap.draw_line(self.graphicsContext, 0, 0, width - 100, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width, height - 100)
+
+        return True
+
+    def onDrawingAreaExpose(self, widget, event):
+        x, y, width, height = event.area
+        widget.window.draw_drawable(widget.get_style().fg_gc[gtk.STATE_NORMAL],
+                                    self.pixmap, x, y, x, y, width, height)
+        return False
 
     def __init__(self):
         # Pull widgets from Glade
@@ -141,7 +165,7 @@ class MainUI:
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
         # Attach event handlers
-        self.window.connect('delete_event', lambda q: gtk.main_quit())
+        self.window.connect('delete_event', lambda w: gtk.main_quit())
         glade.signal_autoconnect(self)
 
         # Display the window
