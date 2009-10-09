@@ -60,27 +60,27 @@ class MainUI:
         defaultTag = gtk.TextTag('default')
         defaultTag.set_property('font', 'Courier')
         defaultTag.set_property('foreground', '#003399')
-        defaultTag.set_property('background', '#ffffff')
+        defaultTag.set_property('paragraph-background', '#ffffff')
 
         addTag = gtk.TextTag('add')
         addTag.set_property('font', 'Courier')
         addTag.set_property('foreground', '#666600')
-        addTag.set_property('background', '#99ff66')
+        addTag.set_property('paragraph-background', '#99ff66')
 
         removeTag = gtk.TextTag('remove')
         removeTag.set_property('font', 'Courier')
         removeTag.set_property('foreground', '#cc0033')
-        removeTag.set_property('background', '#ffcccc')
+        removeTag.set_property('paragraph-background', '#ffcccc')
 
         patchTag = gtk.TextTag('patch')
         patchTag.set_property('font', 'Courier')
         patchTag.set_property('foreground', '#ffffff')
-        patchTag.set_property('background', '#003399')
+        patchTag.set_property('paragraph-background', '#003399')
 
         fileTag = gtk.TextTag('file')
         fileTag.set_property('font', 'Courier')
         fileTag.set_property('foreground', '#ffffff')
-        fileTag.set_property('background', '#cc6600')
+        fileTag.set_property('paragraph-background', '#cc6600')
 
         tagTable.add(defaultTag)
         tagTable.add(addTag)
