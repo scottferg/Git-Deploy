@@ -8,16 +8,35 @@ try:
 except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
-# Returns parents of a commit
-findParentCommit = lambda c: repo.commit(c).parents[0].id
-# Gets author of a commit
-findCommitAuthor = lambda c: str(repo.commit(c).author)
-# Gets committer of a commit
-findCommitCommitter = lambda c: str(repo.commit(c).committer)
-# Gets commit authored date
-findCommitAuthoredDate = lambda c: time.strftime("%a, %d %b %Y %H:%M", repo.commit(c).authored_date)
-# Gets commit committed date
-findCommitCommittedDate = lambda c: time.strftime("%a, %d %b %Y %H:%M", repo.commit(c).committed_date)
+def findParentCommit(commit):
+    '''
+    Returns parents of a commit
+    '''
+    return repo.commit(commit).parents[0].id
+
+def findCommitAuthor(commit): 
+    '''
+    Gets author of a commit
+    '''
+    return str(repo.commit(commit).author)
+
+def findCommitCommitter(commit): 
+    '''
+    Gets committer of a commit
+    '''
+    return str(repo.commit(commit).committer)
+
+def findCommitAuthoredDate(commit):
+    '''
+    Gets commit authored date
+    '''
+    return time.strftime("%a, %d %b %Y %H:%M", repo.commit(commit).authored_date)
+
+def findCommitCommittedDate(commit): 
+    '''
+    Gets commit committed date
+    '''
+    return time.strftime("%a, %d %b %Y %H:%M", repo.commit(commit).committed_date)
 
 def getCommitDiff(commit):
     '''
