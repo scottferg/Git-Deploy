@@ -5,6 +5,7 @@ pygtk.require("2.0")
 import gtk
 import gtk.glade
 import gobject
+import pango
 
 import os, sys
 import getopt
@@ -33,13 +34,6 @@ class MainUI:
 
         # Don't add a commit twice
         if not self._checkCommitInList(commit['hash'][:10]):
-            # Nitpicky formatting, even though 'head' will still
-            # work
-            if hash.upper() == 'HEAD':
-                hash = 'HEAD'
-            else:
-                hash = hash.lower()
-
             if commit:
                 self.listStore.prepend([commit['hash'][:10], 
                                         commit['message'],
@@ -52,9 +46,11 @@ class MainUI:
         return
 
     def _getFormattedDiffBuffer(self, commit):
-
+        '''
+        Formats a commit diff message with proper styling
+        '''
         textBuffer = gtk.TextBuffer()
-        textBuffer.set_text(gitHandler.getCommitDiff(commit))
+        textBuffer.set_text(commit)
 
         startIter, endIter = textBuffer.get_bounds()
 
@@ -83,8 +79,8 @@ class MainUI:
 
         fileTag = gtk.TextTag('file')
         fileTag.set_property('font', 'Courier')
-        fileTag.set_property('foreground', '#cccccc')
-        fileTag.set_property('background', '#993300')
+        fileTag.set_property('foreground', '#ffffff')
+        fileTag.set_property('background', '#cc6600')
 
         tagTable.add(defaultTag)
         tagTable.add(addTag)
@@ -215,7 +211,7 @@ class MainUI:
         commit = model.get_value(iter, 0)
 
         # Display the buffer
-        self.txtDiffView.set_buffer(self._getFormattedDiffBuffer(commit))
+        self.txtDiffView.set_buffer(self._getFormattedDiffBuffer(gitHandler.getCommitDiff(commit)))
 
     def __init__(self, *args):
         # Pull widgets from Glade
