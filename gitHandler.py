@@ -9,13 +9,21 @@ except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
 # Returns parents of a commit
-findParentCommit = lambda c: c.parents[0].id
+findParentCommit = lambda c: repo.commit(c).parents[0].id
+# Gets author of a commit
+findCommitAuthor = lambda c: str(repo.commit(c).author)
+# Gets committer of a commit
+findCommitCommitter = lambda c: str(repo.commit(c).committer)
+# Gets commit authored date
+findCommitAuthoredDate = lambda c: time.strftime("%a, %d %b %Y %H:%M", repo.commit(c).authored_date)
+# Gets commit committed date
+findCommitCommittedDate = lambda c: time.strftime("%a, %d %b %Y %H:%M", repo.commit(c).committed_date)
 
 def getCommitDiff(commit):
     '''
     Returns the diff for a specific commit
     '''
-    return repo.diff(findParentCommit(repo.commit(commit)),
+    return repo.diff(findParentCommit(commit),
                      repo.commit(commit))
 
 def findChangedFiles(commit):

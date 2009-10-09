@@ -210,8 +210,15 @@ class MainUI:
         (model, iter) = widget.get_selected()
         commit = model.get_value(iter, 0)
 
+        diffText = 'Author: ' + gitHandler.findCommitAuthor(commit) + ' (' 
+        diffText += gitHandler.findCommitAuthoredDate(commit) + ')\n'
+        diffText += 'Committer: ' + gitHandler.findCommitCommitter(commit) + ' ('
+        diffText += gitHandler.findCommitCommittedDate(commit) + ')\n'
+        diffText += 'Parent: ' + gitHandler.findParentCommit(commit) + '\n\n'
+        diffText += gitHandler.getCommitDiff(commit)
+
         # Display the buffer
-        self.txtDiffView.set_buffer(self._getFormattedDiffBuffer(gitHandler.getCommitDiff(commit)))
+        self.txtDiffView.set_buffer(self._getFormattedDiffBuffer(diffText))
 
     def __init__(self, *args):
         # Pull widgets from Glade
