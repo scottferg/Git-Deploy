@@ -131,7 +131,6 @@ class MainUI:
 
         self.commitColumn = gtk.TreeViewColumn('Commit', self.commitRenderer, text = 0)
         self.commitColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-        self.commitColumn.set_min_width(90)
         self.commitColumn.set_expand(False)
 
         self.descriptionColumn = gtk.TreeViewColumn('Description', self.descriptionRenderer, text = 1)
