@@ -14,8 +14,8 @@ def getCommitDiff(commit):
     '''
     Returns the diff for a specific commit
     '''
-    return repo.diff(repo.commit(commit), 
-                     findParentCommit(repo.commit(commit)))
+    return repo.diff(findParentCommit(repo.commit(commit)),
+                     repo.commit(commit))
 
 def findChangedFiles(commit):
     '''
