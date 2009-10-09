@@ -7,6 +7,16 @@ try:
 except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
+# Returns parents of a commit
+findParentCommit = lambda c: c.parents[0].id
+
+def getCommitDiff(commit):
+    '''
+    Returns the diff for a specific commit
+    '''
+    return repo.diff(repo.commit(commit), 
+                     findParentCommit(repo.commit(commit)))
+
 def findChangedFiles(commit):
     '''
     Finds all of the affected files within a given commit

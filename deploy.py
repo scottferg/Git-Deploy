@@ -137,32 +137,13 @@ class MainUI:
 
         return
 
-    def onDrawingAreaConfigure(self, widget, event):
-        self.graphicsContext = widget.window.new_gc()
-        self.colormap = self.graphicsContext.get_colormap()
-        self.colors = {}
-        self.colors['green'] = self.colormap.alloc_color('green')
-        self.colors['white'] = self.colormap.alloc_color('white')
+    def onCommitSelected(self, widget, data = None):
+        (model, iter) = widget.get_selected()
+        commit = model.get_value(iter, 0)
 
-        x, y, width, height = widget.get_allocation()
-        self.pixmap = gtk.gdk.Pixmap(widget.window, width, height)
-
-        self.graphicsContext.set_foreground(self.colors['white'])
-        self.pixmap.draw_rectangle(widget.get_style().white_gc, True, 0, 0, width, height)
-
-        self.graphicsContext.set_foreground(self.colors['green'])
-        self.pixmap.draw_line(self.graphicsContext, 0, height, 50, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, 50, height - 100, 100, height + 100)
-        self.pixmap.draw_line(self.graphicsContext, 100, height + 100, 150, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, 150, height - 100, 200, height + 100)
-
-        return True
-
-    def onDrawingAreaExpose(self, widget, event):
-        x, y, width, height = event.area
-        widget.window.draw_drawable(widget.get_style().fg_gc[gtk.STATE_NORMAL],
-                                    self.pixmap, x, y, x, y, width, height)
-        return False
+        textBuffer = gtk.TextBuffer()
+        textBuffer.set_text(gitHandler.getCommitDiff(commit))
+        self.txtDiffView.set_buffer(textBuffer)
 
     def __init__(self, *args):
         # Pull widgets from Glade
@@ -171,6 +152,7 @@ class MainUI:
         self.btnAdd = glade.get_widget('btnAdd')
         self.btnDisplayList = glade.get_widget('btnDisplayList')
         self.txtCommitEntry = glade.get_widget('txtCommitEntry')
+        self.txtDiffView = glade.get_widget('txtDiffView')
         self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
         self.window = glade.get_widget('mainWindow')
 
@@ -179,11 +161,16 @@ class MainUI:
         self.model = self.getListModel()
         self.treeView = self.makeListView(self.model)
 
+        # Initialize tree view selector
+        self.selectedCommit = self.treeView.get_selection()
+        self.selectedCommit.set_mode(gtk.SELECTION_SINGLE)
+
         # Add it to the scrollable window
         self.wndScrolledWindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
         # Attach event handlers
+        self.selectedCommit.connect('changed', self.onCommitSelected)
         self.window.connect('delete_event', lambda w, q: gtk.main_quit())
         glade.signal_autoconnect(self)
 
