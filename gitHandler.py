@@ -1,6 +1,7 @@
 import git
 import sys, os
 import getopt
+import time
 
 try:
     repo = git.Repo(os.getcwd())
@@ -30,8 +31,10 @@ def getCommitMessage(commit):
     try:
         commit = repo.commit(commit)
 
-        return {'hash' : commit.id,
-                'message' : commit.message}
+        return {'hash': commit.id,
+                'author': commit.author,
+                'date': time.strftime("%a, %d %b %Y %H:%M", commit.committed_date),
+                'message': commit.message}
     except git.errors.GitCommandError:
         print 'Error: Commit not found'
         return False

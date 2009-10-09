@@ -42,7 +42,9 @@ class MainUI:
 
             if commit:
                 self.listStore.prepend([commit['hash'][:10], 
-                commit['message']])
+                                        commit['message'],
+                                        commit['author'],
+                                        commit['date']])
             else:
                 # TODO: Pop an alert here
                 pass
@@ -91,9 +93,9 @@ class MainUI:
             try:
                 currentEndIter = textBuffer.get_iter_at_line(count + 1)
                 
-                if currentIter.get_text(currentEndIter)[0] == '+':
+                if currentIter.get_text(currentEndIter)[0:1] == '+':
                     textBuffer.apply_tag(addTag, currentIter, currentEndIter)
-                elif currentIter.get_text(currentEndIter)[0] == '-':
+                elif currentIter.get_text(currentEndIter)[0:1] == '-':
                     textBuffer.apply_tag(removeTag, currentIter, currentEndIter)
             except TypeError:
                 pass
@@ -104,7 +106,7 @@ class MainUI:
         '''
         Create the empty tree store
         '''
-        self.listStore = gtk.ListStore(str, str)
+        self.listStore = gtk.ListStore(str, str, str, str)
         return
 
     def _getListModel(self):
@@ -122,9 +124,10 @@ class MainUI:
         '''
         self.treeView = gtk.TreeView(model)
 
-        self.idRenderer = gtk.CellRendererText()
         self.commitRenderer = gtk.CellRendererText()
         self.descriptionRenderer = gtk.CellRendererText()
+        self.authorRenderer = gtk.CellRendererText()
+        self.dateRenderer = gtk.CellRendererText()
 
         self.commitColumn = gtk.TreeViewColumn('Commit', self.commitRenderer, text = 0)
         self.commitColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
@@ -135,8 +138,20 @@ class MainUI:
         self.descriptionColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.descriptionColumn.set_expand(True)
 
+        self.authorColumn = gtk.TreeViewColumn('Author', self.authorRenderer, text = 2)
+        self.authorColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.authorColumn.set_min_width(90)
+        self.authorColumn.set_expand(False)
+
+        self.dateColumn = gtk.TreeViewColumn('Date', self.dateRenderer, text = 3)
+        self.dateColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.dateColumn.set_min_width(90)
+        self.dateColumn.set_expand(False)
+
         self.treeView.append_column(self.commitColumn)
         self.treeView.append_column(self.descriptionColumn)
+        self.treeView.append_column(self.authorColumn)
+        self.treeView.append_column(self.dateColumn)
         self.treeView.set_expander_column(self.descriptionColumn)
         self.treeView.set_rules_hint(True)
 
