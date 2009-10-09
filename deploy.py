@@ -143,6 +143,52 @@ class MainUI:
 
         textBuffer = gtk.TextBuffer()
         textBuffer.set_text(gitHandler.getCommitDiff(commit))
+
+        startIter, endIter = textBuffer.get_bounds()
+
+        # Setup text formatting tags
+        tagTable = textBuffer.get_tag_table()
+
+        defaultTag = gtk.TextTag('default')
+        defaultTag.set_property('font', 'Courier')
+        defaultTag.set_property('foreground', '#999999')
+        defaultTag.set_property('background', '#ffffff')
+
+        addTag = gtk.TextTag('add')
+        addTag.set_property('font', 'Courier')
+        addTag.set_property('foreground', '#666633')
+        addTag.set_property('background', '#66cc66')
+
+        removeTag = gtk.TextTag('remove')
+        removeTag.set_property('font', 'Courier')
+        removeTag.set_property('foreground', '#990000')
+        removeTag.set_property('background', '#ff3333')
+
+        tagTable.add(defaultTag)
+        tagTable.add(addTag)
+        tagTable.add(removeTag)
+
+        # Read each line and style it accordingly
+        lineCount = textBuffer.get_line_count()
+        count = 0
+
+        while (count < lineCount):
+            count += 1
+            currentIter = textBuffer.get_iter_at_line(count)
+
+            try:
+                currentEndIter = currentIter.forward_search('\n', gtk.TEXT_SEARCH_VISIBLE_ONLY)[1]
+                
+                if currentIter.get_text(currentEndIter)[0] == '+':
+                    textBuffer.apply_tag(addTag, currentIter, currentEndIter)
+                elif currentIter.get_text(currentEndIter)[0] == '-':
+                    textBuffer.apply_tag(removeTag, currentIter, currentEndIter)
+                else:
+                    textBuffer.apply_tag(defaultTag, currentIter, currentEndIter)
+            except TypeError:
+                pass
+
+        # Display the buffer
         self.txtDiffView.set_buffer(textBuffer)
 
     def __init__(self, *args):
