@@ -14,7 +14,7 @@ import fileListWindow
 
 class MainUI:
 
-    def checkCommitInList(self, commit):
+    def _checkCommitInList(self, commit):
         '''
         Check whether or not a commit is already in the
         list.
@@ -25,14 +25,14 @@ class MainUI:
 
         return False
 
-    def addCommit(self, hash):
+    def _addCommit(self, hash):
         '''
         Add a commit to the list
         '''
         commit = gitHandler.getCommitMessage(hash)
 
         # Don't add a commit twice
-        if not self.checkCommitInList(commit['hash'][:10]):
+        if not self._checkCommitInList(commit['hash'][:10]):
             # Nitpicky formatting, even though 'head' will still
             # work
             if hash.upper() == 'HEAD':
@@ -49,14 +49,65 @@ class MainUI:
 
         return
 
-    def makeListModel(self):
+    def _getFormattedDiffBuffer(self, commit):
+
+        textBuffer = gtk.TextBuffer()
+        textBuffer.set_text(gitHandler.getCommitDiff(commit))
+
+        startIter, endIter = textBuffer.get_bounds()
+
+        # Setup text formatting tags
+        tagTable = textBuffer.get_tag_table()
+
+        defaultTag = gtk.TextTag('default')
+        defaultTag.set_property('font', 'Courier')
+        defaultTag.set_property('foreground', '#666666')
+        defaultTag.set_property('background', '#ffffff')
+
+        addTag = gtk.TextTag('add')
+        addTag.set_property('font', 'Courier')
+        addTag.set_property('foreground', '#666633')
+        addTag.set_property('background', '#66cc66')
+
+        removeTag = gtk.TextTag('remove')
+        removeTag.set_property('font', 'Courier')
+        removeTag.set_property('foreground', '#660000')
+        removeTag.set_property('background', '#ff3333')
+
+        tagTable.add(defaultTag)
+        tagTable.add(addTag)
+        tagTable.add(removeTag)
+
+        textBuffer.apply_tag(defaultTag, startIter, endIter)
+        
+        # Read each line and style it accordingly
+        lineCount = textBuffer.get_line_count()
+        count = 0
+
+        while (count < lineCount):
+            count += 1
+            currentIter = textBuffer.get_iter_at_line(count)
+
+            try:
+                currentEndIter = textBuffer.get_iter_at_line(count + 1)
+                
+                if currentIter.get_text(currentEndIter)[0] == '+':
+                    textBuffer.apply_tag(addTag, currentIter, currentEndIter)
+                elif currentIter.get_text(currentEndIter)[0] == '-':
+                    textBuffer.apply_tag(removeTag, currentIter, currentEndIter)
+            except TypeError:
+                pass
+
+        return textBuffer
+
+    def _makeListModel(self):
         '''
         Create the empty tree store
         '''
         self.listStore = gtk.ListStore(str, str)
         return
 
-    def getListModel(self):
+    def _getListModel(self):
         '''
         Returns the list model
         '''
@@ -65,7 +116,7 @@ class MainUI:
         else:
             return None
 
-    def makeListView(self, model):
+    def _makeListView(self, model):
         '''
         Initialize the empty list
         '''
@@ -75,22 +126,18 @@ class MainUI:
         self.commitRenderer = gtk.CellRendererText()
         self.descriptionRenderer = gtk.CellRendererText()
 
-        self.column0 = gtk.TreeViewColumn('id', self.idRenderer, text = 0)
-        self.column0.set_visible(False)
+        self.commitColumn = gtk.TreeViewColumn('Commit', self.commitRenderer, text = 0)
+        self.commitColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.commitColumn.set_min_width(90)
+        self.commitColumn.set_expand(False)
 
-        self.column1 = gtk.TreeViewColumn('Commit', self.commitRenderer, text = 0)
-        self.column1.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-        self.column1.set_min_width(90)
-        self.column1.set_expand(False)
+        self.descriptionColumn = gtk.TreeViewColumn('Description', self.descriptionRenderer, text = 1)
+        self.descriptionColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.descriptionColumn.set_expand(True)
 
-        self.column2 = gtk.TreeViewColumn('Description', self.descriptionRenderer, text = 1)
-        self.column2.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-        self.column2.set_expand(True)
-
-        self.treeView.append_column(self.column0)
-        self.treeView.append_column(self.column1)
-        self.treeView.append_column(self.column2)
-        self.treeView.set_expander_column(self.column2)
+        self.treeView.append_column(self.commitColumn)
+        self.treeView.append_column(self.descriptionColumn)
+        self.treeView.set_expander_column(self.descriptionColumn)
         self.treeView.set_rules_hint(True)
 
         return self.treeView
@@ -99,7 +146,7 @@ class MainUI:
         '''
         Handler for okay button
         '''
-        self.addCommit(self.txtCommitEntry.get_text())
+        self._addCommit(self.txtCommitEntry.get_text())
         self.txtCommitEntry.set_text('')
         return
 
@@ -107,9 +154,6 @@ class MainUI:
         '''
         Handler for display button
         '''
-
-        # TODO: This should be threaded
-
         commitList = []
         fileList = []
 
@@ -132,7 +176,7 @@ class MainUI:
 
     def onTxtCommitEntryKeyDown(self, widget, event, data = None):
         if event.keyval == 65293:
-            self.addCommit(self.txtCommitEntry.get_text())
+            self._addCommit(self.txtCommitEntry.get_text())
             self.txtCommitEntry.set_text('')
 
         return
@@ -141,55 +185,8 @@ class MainUI:
         (model, iter) = widget.get_selected()
         commit = model.get_value(iter, 0)
 
-        textBuffer = gtk.TextBuffer()
-        textBuffer.set_text(gitHandler.getCommitDiff(commit))
-
-        startIter, endIter = textBuffer.get_bounds()
-
-        # Setup text formatting tags
-        tagTable = textBuffer.get_tag_table()
-
-        defaultTag = gtk.TextTag('default')
-        defaultTag.set_property('font', 'Courier')
-        defaultTag.set_property('foreground', '#999999')
-        defaultTag.set_property('background', '#ffffff')
-
-        addTag = gtk.TextTag('add')
-        addTag.set_property('font', 'Courier')
-        addTag.set_property('foreground', '#666633')
-        addTag.set_property('background', '#66cc66')
-
-        removeTag = gtk.TextTag('remove')
-        removeTag.set_property('font', 'Courier')
-        removeTag.set_property('foreground', '#990000')
-        removeTag.set_property('background', '#ff3333')
-
-        tagTable.add(defaultTag)
-        tagTable.add(addTag)
-        tagTable.add(removeTag)
-
-        # Read each line and style it accordingly
-        lineCount = textBuffer.get_line_count()
-        count = 0
-
-        while (count < lineCount):
-            count += 1
-            currentIter = textBuffer.get_iter_at_line(count)
-
-            try:
-                currentEndIter = currentIter.forward_search('\n', gtk.TEXT_SEARCH_VISIBLE_ONLY)[1]
-                
-                if currentIter.get_text(currentEndIter)[0] == '+':
-                    textBuffer.apply_tag(addTag, currentIter, currentEndIter)
-                elif currentIter.get_text(currentEndIter)[0] == '-':
-                    textBuffer.apply_tag(removeTag, currentIter, currentEndIter)
-                else:
-                    textBuffer.apply_tag(defaultTag, currentIter, currentEndIter)
-            except TypeError:
-                pass
-
         # Display the buffer
-        self.txtDiffView.set_buffer(textBuffer)
+        self.txtDiffView.set_buffer(self._getFormattedDiffBuffer(commit))
 
     def __init__(self, *args):
         # Pull widgets from Glade
@@ -203,9 +200,9 @@ class MainUI:
         self.window = glade.get_widget('mainWindow')
 
         # Initialize the treestore
-        self.makeListModel()
-        self.model = self.getListModel()
-        self.treeView = self.makeListView(self.model)
+        self._makeListModel()
+        self.model = self._getListModel()
+        self.treeView = self._makeListView(self.model)
 
         # Initialize tree view selector
         self.selectedCommit = self.treeView.get_selection()
@@ -226,18 +223,20 @@ class MainUI:
         if args:
             commitList = gitHandler.getCommitsSinceTag(args[0])
             for commit in commitList:
-                self.addCommit(commit)
+                self._addCommit(commit)
 
     def main(self):
         gtk.main()
 
 def parseCommandLineArguments():
-    tag = None
+    argList = None
 
-    options, remainder = getopt.getopt(sys.argv[1:], 't:', 'tag=');
+    options, remainder = getopt.getopt(sys.argv[1:], 't:c:', ['tag=','commit=']);
 
     for opt, arg in options:
         if (opt in ('-t', '--tag')):
+            tag = arg
+        if (opt in ('-c', '--commit')):
             tag = arg
 
     if tag:
