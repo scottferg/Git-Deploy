@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 import pygtk
 pygtk.require("2.0")
@@ -7,6 +7,7 @@ import gtk.glade
 import gobject
 
 import os, sys
+import getopt
 
 import gitHandler
 import fileListWindow
@@ -14,6 +15,10 @@ import fileListWindow
 class MainUI:
 
     def checkCommitInList(self, commit):
+        '''
+        Check whether or not a commit is already in the
+        list.
+        '''
         for row in self.listStore:
             if row[0] == commit:
                 return True
@@ -21,8 +26,9 @@ class MainUI:
         return False
 
     def addCommit(self, hash):
-        '''Add a commit to the list'''
-
+        '''
+        Add a commit to the list
+        '''
         commit = gitHandler.getCommitMessage(hash)
 
         # Don't add a commit twice
@@ -44,19 +50,25 @@ class MainUI:
         return
 
     def makeListModel(self):
-        '''Create the empty tree store'''
+        '''
+        Create the empty tree store
+        '''
         self.listStore = gtk.ListStore(str, str)
         return
 
     def getListModel(self):
-        '''Returns the list model'''
+        '''
+        Returns the list model
+        '''
         if self.listStore:
             return self.listStore
         else:
             return None
 
     def makeListView(self, model):
-        '''Initialize the empty list'''
+        '''
+        Initialize the empty list
+        '''
         self.treeView = gtk.TreeView(model)
 
         self.idRenderer = gtk.CellRendererText()
@@ -84,13 +96,17 @@ class MainUI:
         return self.treeView
     
     def onBtnAddClicked(self, widget, data = None):
-        '''Handler for okay button'''
+        '''
+        Handler for okay button
+        '''
         self.addCommit(self.txtCommitEntry.get_text())
         self.txtCommitEntry.set_text('')
         return
 
     def onBtnDisplayListClicked(self, widget, data = None):
-        '''Handler for display button'''
+        '''
+        Handler for display button
+        '''
 
         # TODO: This should be threaded
 
@@ -120,6 +136,7 @@ class MainUI:
             self.txtCommitEntry.set_text('')
 
         return
+
     def onDrawingAreaConfigure(self, widget, event):
         self.graphicsContext = widget.window.new_gc()
         self.colormap = self.graphicsContext.get_colormap()
@@ -134,14 +151,10 @@ class MainUI:
         self.pixmap.draw_rectangle(widget.get_style().white_gc, True, 0, 0, width, height)
 
         self.graphicsContext.set_foreground(self.colors['green'])
-        self.pixmap.draw_line(self.graphicsContext, width, height, width - 100, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
-        self.pixmap.draw_line(self.graphicsContext, width + 100, height + 100, width - 100, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
-        self.pixmap.draw_line(self.graphicsContext, width + 100, height + 100, width - 100, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
-        self.pixmap.draw_line(self.graphicsContext, width + 100, height + 100, width - 100, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, width - 100, height - 100, width + 100, height + 100)
+        self.pixmap.draw_line(self.graphicsContext, 0, height, 50, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, 50, height - 100, 100, height + 100)
+        self.pixmap.draw_line(self.graphicsContext, 100, height + 100, 150, height - 100)
+        self.pixmap.draw_line(self.graphicsContext, 150, height - 100, 200, height + 100)
 
         return True
 
@@ -151,7 +164,7 @@ class MainUI:
                                     self.pixmap, x, y, x, y, width, height)
         return False
 
-    def __init__(self):
+    def __init__(self, *args):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
 
@@ -171,15 +184,35 @@ class MainUI:
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
         # Attach event handlers
-        self.window.connect('delete_event', lambda w: gtk.main_quit())
+        self.window.connect('delete_event', lambda w, q: gtk.main_quit())
         glade.signal_autoconnect(self)
 
         # Display the window
         self.window.show_all()
 
+        if args:
+            commitList = gitHandler.getCommitsSinceTag(args[0])
+            for commit in commitList:
+                self.addCommit(commit)
+
     def main(self):
         gtk.main()
 
-if __name__ == '__main__':
-    window = MainUI()
+def parseCommandLineArguments():
+    tag = None
+
+    options, remainder = getopt.getopt(sys.argv[1:], 't:', 'tag=');
+
+    for opt, arg in options:
+        if (opt in ('-t', '--tag')):
+            tag = arg
+
+    if tag:
+        window = MainUI(tag)
+    else:
+        window = MainUI()
+        
     window.main()
+
+if __name__ == '__main__':
+    parseCommandLineArguments()

@@ -10,7 +10,9 @@ except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
 def parseFileList(diff):
-    '''Parses filenames out of a diff'''
+    '''
+    Parses filenames out of a diff
+    '''
     result = []
 
     while True:
@@ -28,7 +30,9 @@ def parseFileList(diff):
     return result
 
 def findChangedFiles(commit):
-    '''Finds all of the affected files within a given commit'''
+    '''
+    Finds all of the affected files within a given commit
+    '''
     try:
         blob = repo.blob(commit)
         diff = repo.diff(repo.commit(commit), repo.commit(findParentCommit(blob)))
@@ -39,7 +43,9 @@ def findChangedFiles(commit):
     return parseFileList(diff)
 
 def getCommitMessage(commit):
-    '''Finds the commit message for the specified commit'''
+    '''
+    Finds the commit message for the specified commit
+    '''
     try:
         commit = repo.commit(commit)
 
@@ -48,6 +54,19 @@ def getCommitMessage(commit):
     except git.errors.GitCommandError:
         print 'Error: Commit not found'
         return False
+
+def getCommitsSinceTag(tag):
+    '''
+    Returns all commits since the given tag
+    '''
+    try:
+        commitList = repo.commits_between(tag, 'HEAD')
+        result = [commit.id for commit in commitList]
+    except git.errors.GitCommandError:
+        print 'Error: Commit not found'
+        return False
+
+    return result
     
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
@@ -59,7 +78,7 @@ def main():
     try:
     	print "\n".join(["%s" % x for x in findChangedFiles(commit)])
     except UnboundLocalError:
-        print 'Usage: git_handler.py [-c|--commit] <commit>'
+        print 'Usage: git_handler.py ([-c|--commit][-t|--tag]) <commit|tag>'
     except TypeError:
         print 'Commit not found'
 
