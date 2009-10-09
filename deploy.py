@@ -63,22 +63,34 @@ class MainUI:
 
         defaultTag = gtk.TextTag('default')
         defaultTag.set_property('font', 'Courier')
-        defaultTag.set_property('foreground', '#666666')
+        defaultTag.set_property('foreground', '#003399')
         defaultTag.set_property('background', '#ffffff')
 
         addTag = gtk.TextTag('add')
         addTag.set_property('font', 'Courier')
-        addTag.set_property('foreground', '#666633')
-        addTag.set_property('background', '#66cc66')
+        addTag.set_property('foreground', '#666600')
+        addTag.set_property('background', '#99ff66')
 
         removeTag = gtk.TextTag('remove')
         removeTag.set_property('font', 'Courier')
-        removeTag.set_property('foreground', '#660000')
-        removeTag.set_property('background', '#ff3333')
+        removeTag.set_property('foreground', '#cc0033')
+        removeTag.set_property('background', '#ffcccc')
+
+        patchTag = gtk.TextTag('patch')
+        patchTag.set_property('font', 'Courier')
+        patchTag.set_property('foreground', '#ffffff')
+        patchTag.set_property('background', '#003399')
+
+        fileTag = gtk.TextTag('file')
+        fileTag.set_property('font', 'Courier')
+        fileTag.set_property('foreground', '#993300')
+        fileTag.set_property('background', '#ffcc66')
 
         tagTable.add(defaultTag)
         tagTable.add(addTag)
         tagTable.add(removeTag)
+        tagTable.add(patchTag)
+        tagTable.add(fileTag)
 
         textBuffer.apply_tag(defaultTag, startIter, endIter)
         
@@ -92,11 +104,16 @@ class MainUI:
 
             try:
                 currentEndIter = textBuffer.get_iter_at_line(count + 1)
-                
+
                 if currentIter.get_text(currentEndIter)[0:1] == '+':
                     textBuffer.apply_tag(addTag, currentIter, currentEndIter)
                 elif currentIter.get_text(currentEndIter)[0:1] == '-':
                     textBuffer.apply_tag(removeTag, currentIter, currentEndIter)
+                elif currentIter.get_text(currentEndIter)[0:2] == '@@':
+                    textBuffer.apply_tag(patchTag, currentIter, currentEndIter)
+                elif currentIter.get_text(currentEndIter)[0:4] == 'diff':
+                    nextLineIter = textBuffer.get_iter_at_line(count + 2)
+                    textBuffer.apply_tag(fileTag, currentIter, nextLineIter)
             except TypeError:
                 pass
 
@@ -139,12 +156,10 @@ class MainUI:
 
         self.authorColumn = gtk.TreeViewColumn('Author', self.authorRenderer, text = 2)
         self.authorColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-        self.authorColumn.set_min_width(90)
         self.authorColumn.set_expand(False)
 
         self.dateColumn = gtk.TreeViewColumn('Date', self.dateRenderer, text = 3)
         self.dateColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
-        self.dateColumn.set_min_width(90)
         self.dateColumn.set_expand(False)
 
         self.treeView.append_column(self.commitColumn)
@@ -249,12 +264,12 @@ def parseCommandLineArguments():
 
     for opt, arg in options:
         if (opt in ('-t', '--tag')):
-            tag = arg
+            argList = arg
         if (opt in ('-c', '--commit')):
-            tag = arg
+            argList = arg
 
-    if tag:
-        window = MainUI(tag)
+    if argList:
+        window = MainUI(argList)
     else:
         window = MainUI()
         

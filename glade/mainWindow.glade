@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Thu Oct 08 22:07:34 2009 -->
+<!--Generated with glade3 3.4.3 on Fri Oct 09 13:27:46 2009 -->
 <glade-interface>
   <widget class="GtkWindow" id="mainWindow">
     <property name="width_request">780</property>
