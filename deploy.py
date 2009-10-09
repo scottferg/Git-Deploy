@@ -41,7 +41,7 @@ class MainUI:
                 hash = hash.lower()
 
             if commit:
-                self.listStore.append([commit['hash'][:10], 
+                self.listStore.prepend([commit['hash'][:10], 
                 commit['message']])
             else:
                 # TODO: Pop an alert here
