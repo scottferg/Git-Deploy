@@ -83,8 +83,8 @@ class MainUI:
 
         fileTag = gtk.TextTag('file')
         fileTag.set_property('font', 'Courier')
-        fileTag.set_property('foreground', '#993300')
-        fileTag.set_property('background', '#ffcc66')
+        fileTag.set_property('foreground', '#cccccc')
+        fileTag.set_property('background', '#993300')
 
         tagTable.add(defaultTag)
         tagTable.add(addTag)
