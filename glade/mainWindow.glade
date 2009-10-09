@@ -1,139 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!DOCTYPE glade-interface SYSTEM "glade-2.0.dtd">
-<!--Generated with glade3 3.4.3 on Fri Oct 09 14:59:53 2009 -->
+<!--*- mode: xml -*-->
 <glade-interface>
-  <widget class="GtkWindow" id="mainWindow">
-    <property name="width_request">780</property>
-    <property name="height_request">680</property>
-    <property name="border_width">8</property>
-    <property name="title" translatable="yes">Git Deploy</property>
-    <child>
-      <widget class="GtkHBox" id="hbox1">
-        <property name="visible">True</property>
-        <child>
-          <widget class="GtkVBox" id="vbox1">
-            <property name="visible">True</property>
-            <child>
-              <widget class="GtkVBox" id="vbox3">
-                <property name="height_request">350</property>
-                <property name="visible">True</property>
-                <child>
-                  <widget class="GtkHBox" id="hbox2">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkEntry" id="txtCommitEntry">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <signal name="key_press_event" handler="onTxtCommitEntryKeyDown"/>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="padding">5</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkVBox" id="listViewBox">
-                    <property name="visible">True</property>
-                    <child>
-                      <widget class="GtkScrolledWindow" id="wndScrolledWindow">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                        <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                        <child>
-                          <placeholder/>
-                        </child>
-                      </widget>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="position">1</property>
-                  </packing>
-                </child>
-                <child>
-                  <widget class="GtkHBox" id="hbox1">
-                    <property name="visible">True</property>
-                    <child>
-                      <placeholder/>
-                    </child>
-                    <child>
-                      <widget class="GtkButton" id="btnAdd">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="label" translatable="yes">Add Commit</property>
-                        <property name="response_id">0</property>
-                        <signal name="clicked" handler="onBtnAddClicked"/>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="pack_type">GTK_PACK_END</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <widget class="GtkButton" id="btnDisplayList">
-                        <property name="visible">True</property>
-                        <property name="can_focus">True</property>
-                        <property name="receives_default">True</property>
-                        <property name="label" translatable="yes">Display File List</property>
-                        <property name="response_id">0</property>
-                        <signal name="clicked" handler="onBtnDisplayListClicked"/>
-                      </widget>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="padding">5</property>
-                        <property name="pack_type">GTK_PACK_END</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                  </widget>
-                  <packing>
-                    <property name="expand">False</property>
-                    <property name="padding">5</property>
-                    <property name="position">2</property>
-                  </packing>
-                </child>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-              </packing>
-            </child>
-            <child>
-              <widget class="GtkScrolledWindow" id="scrolledwindow2">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                <property name="shadow_type">GTK_SHADOW_IN</property>
-                <child>
-                  <widget class="GtkTextView" id="txtDiffView">
-                    <property name="width_request">550</property>
-                    <property name="visible">True</property>
-                    <property name="can_focus">True</property>
-                    <property name="editable">False</property>
-                    <property name="cursor_visible">False</property>
-                    <property name="accepts_tab">False</property>
-                  </widget>
-                </child>
-              </widget>
-              <packing>
-                <property name="padding">5</property>
-                <property name="position">1</property>
-              </packing>
-            </child>
-          </widget>
-        </child>
-      </widget>
-    </child>
-  </widget>
   <widget class="GtkWindow" id="fileListWindow">
     <property name="width_request">380</property>
     <property name="height_request">380</property>
     <property name="border_width">5</property>
-    <property name="title" translatable="yes">File List</property>
+    <property name="title" translatable="yes" context="yes">File List</property>
     <child>
       <widget class="GtkVBox" id="vbox2">
         <property name="visible">True</property>
@@ -141,13 +14,12 @@
         <child>
           <widget class="GtkScrolledWindow" id="scrolledwindow1">
             <property name="visible">True</property>
-            <property name="can_focus">True</property>
+            <property name="can_focus">False</property>
             <property name="hscrollbar_policy">GTK_POLICY_NEVER</property>
             <property name="shadow_type">GTK_SHADOW_IN</property>
             <child>
               <widget class="GtkTextView" id="txtFileList">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
                 <property name="editable">False</property>
               </widget>
             </child>
@@ -162,9 +34,7 @@
             <child>
               <widget class="GtkButton" id="btnOkay">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">True</property>
-                <property name="label" translatable="yes">Okay</property>
+                <property name="label" translatable="yes" context="yes">Okay</property>
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="onBtnOkayClicked"/>
               </widget>
@@ -179,6 +49,124 @@
           <packing>
             <property name="expand">False</property>
             <property name="position">1</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
+  </widget>
+  <widget class="GtkWindow" id="mainWindow">
+    <property name="width_request">780</property>
+    <property name="height_request">480</property>
+    <property name="border_width">8</property>
+    <property name="title" translatable="yes" context="yes">Git Deploy</property>
+    <child>
+      <widget class="GtkVPaned" id="vpaned1">
+        <property name="visible">True</property>
+        <property name="can_focus">True</property>
+        <child>
+          <widget class="GtkVBox" id="vbox3">
+            <property name="visible">True</property>
+            <child>
+              <widget class="GtkHBox" id="hbox2">
+                <property name="visible">True</property>
+                <child>
+                  <widget class="GtkEntry" id="txtCommitEntry">
+                    <property name="visible">True</property>
+                    <property name="is_focus">True</property>
+                    <signal name="key_press_event" handler="onTxtCommitEntryKeyDown"/>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">5</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkVBox" id="listViewBox">
+                <property name="visible">True</property>
+                <child>
+                  <widget class="GtkScrolledWindow" id="wndScrolledWindow">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                    <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                    <child>
+                      <placeholder/>
+                    </child>
+                  </widget>
+                </child>
+              </widget>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <widget class="GtkHBox" id="hbox1">
+                <property name="visible">True</property>
+                <child>
+                  <placeholder/>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="btnAdd">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes" context="yes">Add Commit</property>
+                    <property name="response_id">0</property>
+                    <signal name="clicked" handler="onBtnAddClicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="pack_type">GTK_PACK_END</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+                <child>
+                  <widget class="GtkButton" id="btnDisplayList">
+                    <property name="visible">True</property>
+                    <property name="label" translatable="yes" context="yes">Display File List</property>
+                    <property name="response_id">0</property>
+                    <signal name="clicked" handler="onBtnDisplayListClicked"/>
+                  </widget>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="padding">5</property>
+                    <property name="pack_type">GTK_PACK_END</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+              </widget>
+              <packing>
+                <property name="expand">False</property>
+                <property name="padding">5</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="resize">True</property>
+            <property name="shrink">True</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkScrolledWindow" id="scrolledwindow2">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+            <property name="shadow_type">GTK_SHADOW_IN</property>
+            <child>
+              <widget class="GtkTextView" id="txtDiffView">
+                <property name="width_request">550</property>
+                <property name="visible">True</property>
+                <property name="editable">False</property>
+                <property name="cursor_visible">False</property>
+                <property name="accepts_tab">False</property>
+              </widget>
+            </child>
+          </widget>
+          <packing>
+            <property name="resize">True</property>
+            <property name="shrink">True</property>
           </packing>
         </child>
       </widget>
