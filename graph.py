@@ -1,44 +1,141 @@
+import os, sys
+import re
+
 import pygtk
 pygtk.require("2.0")
 import gtk
 import gtk.glade
 import gobject
+import cairo
 
-class Graph:
+import math
 
-    def onDrawingAreaConfigure(self, widget, event):
-        self.graphicsContext = widget.window.new_gc()
-        self.colormap = self.graphicsContext.get_colormap()
-        self.colors = {}
-        self.colors['green'] = self.colormap.alloc_color('green')
-        self.colors['white'] = self.colormap.alloc_color('white')
+pattern = '^(\/|\||\*|\ |\\\)$'
 
-        x, y, width, height = widget.get_allocation()
-        self.pixmap = gtk.gdk.Pixmap(widget.window, width, height)
+# Create a GTK+ widget on which we will draw using Cairo
+class Graph(gtk.DrawingArea):
+    # Draw in response to an expose-event
+    __gsignals__ = {'expose-event': 'override'}
 
-        self.graphicsContext.set_foreground(self.colors['white'])
-        self.pixmap.draw_rectangle(widget.get_style().white_gc, True, 0, 0, width, height)
+    # Handle the expose-event by drawing
+    def do_expose_event(self, event):
+        # Create the cairo context
+        context = self.window.cairo_create()
 
-        self.graphicsContext.set_foreground(self.colors['green'])
-        self.pixmap.draw_line(self.graphicsContext, 0, height, 50, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, 50, height - 100, 100, height + 100)
-        self.pixmap.draw_line(self.graphicsContext, 100, height + 100, 150, height - 100)
-        self.pixmap.draw_line(self.graphicsContext, 150, height - 100, 200, height + 100)
+        # Restrict Cairo to the exposed area; avoid extra work
+        context.rectangle(event.area.x, 
+                          event.area.y,
+                          event.area.width, 
+                          event.area.height)
+        context.clip()
 
-        return True
+        self.draw(context, *self.window.get_size())
 
-    def onDrawingAreaExpose(self, widget, event):
-        x, y, width, height = event.area
-        widget.window.draw_drawable(widget.get_style().fg_gc[gtk.STATE_NORMAL],
-                                    self.pixmap, x, y, x, y, width, height)
-        return False
+    def draw(self, context, width, height):
+        # Fill the background with gray
+        context.set_source_rgb(255, 255, 255)
+        context.rectangle(0, 0, width, height)
+        context.fill()
 
+        axisColor = []
+        axisColor.append([0.47, 0.1, 0.65])
+        axisColor.append([0.4, 0.4, 0])
+        axisColor.append([0.65, 0.43, 0.1])
+        axisColor.append([0.18, 0.05, 0.97])
+        axisColor.append([0.4, 0.4, 0])
+        axisColor.append([0.65, 0.43, 0.1])
+        axisColor.append([0.47, 0.1, 0.65])
+        axisColor.append([0.18, 0.05, 0.97])
 
-    def __init__(self):
-        self.drawingArea = gtk.DrawingArea()
-        self.drawingArea.set_size_request(350, 350)
+        setAxisColor = lambda count: context.set_source_rgb(axisColor[count][0],
+                                                            axisColor[count][1],
+                                                            axisColor[count][2])
 
-        self.drawingArea.connect('configure-event', configure_event)
-        self.drawingArea.connect('expose-event', expose_event)
+        passOffset = 5
 
-        self.pixmap = None
+        for axis in self.graph:
+
+            count = 0
+
+            for index in axis:
+                setAxisColor(count)
+
+                nodeHeight = height - ((count + 1) * 25)
+
+                if index == '|':
+                    context.move_to(passOffset - 5, nodeHeight)
+                    context.rel_line_to(20, 0)
+                elif index == '/':
+                    # We are merging out of the source branch, use the merging
+                    # branches color
+                    setAxisColor(count - 1)
+                    context.move_to(passOffset - 20, nodeHeight)
+                    context.rel_line_to(35, 45)
+                elif index == '\\':
+                    # We are merging back to the source branch, use the merging
+                    # branches color
+                    setAxisColor(count + 1)
+                    context.move_to(passOffset - 5, nodeHeight)
+                    context.rel_line_to(25, -45)
+                elif index == '*':
+                    # Draw commits in black
+                    context.set_source_rgb(0, 0, 0)
+                    radius = min(5, 5)
+                    context.arc(passOffset, nodeHeight, radius, 0, 2 * math.pi)
+                    context.stroke()
+                    # Reset to the line color
+                    setAxisColor(count)
+                    context.move_to(passOffset + 5, nodeHeight)
+                    context.rel_line_to(10, 0)
+                
+                context.stroke()
+
+                count += 1
+
+            passOffset += 20
+
+    def __init__(self, graph):
+        super(gtk.DrawingArea, self).__init__()
+        self.graph = graph
+
+def readGitLog():
+    process = os.popen('git log --graph --pretty=oneline', 'r')
+
+    sys.stdout.flush()
+    
+    result = []
+
+    while True:
+        commit = process.readline()
+
+        if not commit:
+            break
+
+        axisList = []
+
+        for i in commit:
+
+            if not re.search(pattern, i):
+                break
+
+            axisList.append(i)
+
+        if axisList:
+            result.append(axisList)
+
+    result.reverse()
+
+    return result
+
+def drawCairoGraph():
+    window= gtk.Window()
+    window.connect('delete-event', lambda w, q: gtk.main_quit())
+    widget = Graph(readGitLog())
+    widget.show()
+    window.add(widget)
+    window.present()
+
+    gtk.main()
+
+if __name__ == '__main__':
+    drawCairoGraph()

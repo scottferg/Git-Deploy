@@ -66,6 +66,20 @@ def getCommitMessage(commit):
         print 'Error: Commit not found'
         return False
 
+def getBranch(branch):
+    '''
+    Returns all commits for the given branch
+    '''
+    try:
+        commitList = repo.commits(start=branch, max_count=20)
+
+        result = [commit.id for commit in commitList]
+    except git.errors.GitCommandError:
+        print 'Error: branch not found'
+        return false
+
+    return result
+
 def getCommitsSinceTag(tag):
     '''
     Returns all commits since the given tag

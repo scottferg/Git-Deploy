@@ -12,6 +12,7 @@ import getopt
 
 import gitHandler
 import fileListWindow
+import graph
 
 class MainUI:
 
@@ -30,18 +31,21 @@ class MainUI:
         '''
         Add a commit to the list
         '''
-        commit = gitHandler.getCommitMessage(hash)
+        try:
+            commit = gitHandler.getCommitMessage(hash)
 
-        # Don't add a commit twice
-        if not self._checkCommitInList(commit['hash'][:10]):
-            if commit:
-                self.listStore.prepend([commit['hash'][:10], 
-                                        commit['message'],
-                                        commit['author'],
-                                        commit['date']])
-            else:
-                # TODO: Pop an alert here
-                pass
+            # Don't add a commit twice
+            if not self._checkCommitInList(commit['hash'][:10]):
+                if commit:
+                    self.listStore.prepend([commit['hash'][:10], 
+                                            commit['message'],
+                                            commit['author'],
+                                            commit['date']])
+                else:
+                    # TODO: Pop an alert here
+                    pass
+        except:
+            pass
 
         return
 
@@ -108,7 +112,7 @@ class MainUI:
                 elif currentIter.get_text(currentEndIter)[0:2] == '@@':
                     textBuffer.apply_tag(patchTag, currentIter, currentEndIter)
                 elif currentIter.get_text(currentEndIter)[0:4] == 'diff':
-                    nextLineIter = textBuffer.get_iter_at_line(count + 2)
+                    nextLineIter = textBuffer.get_iter_at_line(count + 4)
                     textBuffer.apply_tag(fileTag, currentIter, nextLineIter)
             except TypeError:
                 pass
@@ -229,6 +233,7 @@ class MainUI:
         self.txtCommitEntry = glade.get_widget('txtCommitEntry')
         self.txtDiffView = glade.get_widget('txtDiffView')
         self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
+        self.graphWindow = glade.get_widget('graphWindow')
         self.window = glade.get_widget('mainWindow')
 
         # Initialize the treestore
@@ -244,6 +249,8 @@ class MainUI:
         self.wndScrolledWindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
+        self.graphWindow.add_with_viewport(graph.Graph(graph.readGitLog()))
+
         # Attach event handlers
         self.selectedCommit.connect('changed', self.onCommitSelected)
         self.window.connect('delete_event', lambda w, q: gtk.main_quit())
@@ -253,23 +260,34 @@ class MainUI:
         self.window.show_all()
 
         if args:
-            commitList = gitHandler.getCommitsSinceTag(args[0])
-            for commit in commitList:
-                self._addCommit(commit)
+            if args[0][0] == 'tag':
+                pass
+                for commit in gitHandler.getCommitsSinceTag(args[0][1]):
+                    self._addCommit(commit)
+            elif args[0][0] == 'commit':
+                self._addCommit(args[0][1])
+            elif args[0][0] == 'branch':
+                for commit in gitHandler.getBranch(args[0][1]):
+                    self._addCommit(commit)
 
     def main(self):
         gtk.main()
 
 def parseCommandLineArguments():
-    argList = None
+    argList = []
 
-    options, remainder = getopt.getopt(sys.argv[1:], 't:c:', ['tag=','commit=']);
+    options, remainder = getopt.getopt(sys.argv[1:], 't:c:b:', ['tag=','commit=','branch=']);
 
     for opt, arg in options:
         if (opt in ('-t', '--tag')):
-            argList = arg
+            argList.append('tag')
+            argList.append(arg)            
         if (opt in ('-c', '--commit')):
-            argList = arg
+            argList.append('commit')
+            argList.append(arg)            
+        if (opt in ('-b', '--branch')):
+            argList.append('branch')
+            argList.append(arg)            
 
     if argList:
         window = MainUI(argList)
