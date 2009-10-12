@@ -224,6 +224,18 @@ class MainUI:
         # Display the buffer
         self.txtDiffView.set_buffer(self._getFormattedDiffBuffer(diffText))
 
+    def onCommitClicked(self, widget, event):
+        if event.button == 3:
+            pathInfo = self.treeView.get_path_at_pos(int(event.x), int(event.y))
+            
+            if pathInfo is not None:
+                path,col,cellx,celly = pathInfo
+                self.treeView.grab_focus()
+                self.treeView.set_cursor(path, col, 0)
+                self.commitContext.popup(None, None, None, event.button, event.time)
+            
+            return True
+
     def __init__(self, *args):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
@@ -234,6 +246,7 @@ class MainUI:
         self.txtDiffView = glade.get_widget('txtDiffView')
         self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
         self.graphWindow = glade.get_widget('graphWindow')
+        self.commitContext = glade.get_widget('commitContext')
         self.window = glade.get_widget('mainWindow')
 
         # Initialize the treestore
@@ -245,6 +258,14 @@ class MainUI:
         self.selectedCommit = self.treeView.get_selection()
         self.selectedCommit.set_mode(gtk.SELECTION_SINGLE)
 
+        # Setup context menu for commit list
+        menuItem = gtk.MenuItem('Cherry-pick this commit')
+        self.commitContext.append(menuItem)
+        menuItem.show()
+        menuItem = gtk.MenuItem('Revert this commit')
+        self.commitContext.append(menuItem)
+        menuItem.show()
+
         # Add it to the scrollable window
         self.wndScrolledWindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.wndScrolledWindow.add_with_viewport(self.treeView)
@@ -253,6 +274,7 @@ class MainUI:
 
         # Attach event handlers
         self.selectedCommit.connect('changed', self.onCommitSelected)
+        self.treeView.connect('button_press_event', self.onCommitClicked)
         self.window.connect('delete_event', lambda w, q: gtk.main_quit())
         glade.signal_autoconnect(self)
 
