@@ -10,7 +10,8 @@ import cairo
 
 import math
 
-pattern = '^(\/|\||\*|\ |\\\)$'
+from dulwich.repo import Repo
+from dulwich.objects import Commit
 
 # Create a GTK+ widget on which we will draw using Cairo
 class Graph(gtk.DrawingArea):
@@ -51,91 +52,97 @@ class Graph(gtk.DrawingArea):
                                                             axisColor[count][1],
                                                             axisColor[count][2])
 
-        passOffset = 5
+        passOffset = 15
+        count = 0
 
-        for axis in self.graph:
+        for commit in self.commitList:
+            setAxisColor(0)
 
-            count = 0
+            nodeHeight = height - ((count + 1) * 25)
 
-            for index in axis:
-                setAxisColor(count)
-
-                nodeHeight = height - ((count + 1) * 25)
-
-                if index == '|':
-                    context.move_to(passOffset - 5, nodeHeight)
-                    context.rel_line_to(20, 0)
-                elif index == '/':
-                    # We are merging out of the source branch, use the merging
-                    # branches color
-                    setAxisColor(count - 1)
-                    context.move_to(passOffset - 20, nodeHeight)
-                    context.rel_line_to(35, 45)
-                elif index == '\\':
-                    # We are merging back to the source branch, use the merging
-                    # branches color
-                    setAxisColor(count + 1)
-                    context.move_to(passOffset - 5, nodeHeight)
-                    context.rel_line_to(25, -45)
-                elif index == '*':
-                    # Draw commits in black
-                    context.set_source_rgb(0, 0, 0)
-                    radius = min(5, 5)
-                    context.arc(passOffset, nodeHeight, radius, 0, 2 * math.pi)
-                    context.stroke()
-                    # Reset to the line color
-                    setAxisColor(count)
-                    context.move_to(passOffset + 5, nodeHeight)
-                    context.rel_line_to(10, 0)
+            # If the commit has more than one parent, fork, otherwise
+            # draw a straight line backwards
+            if len(commit.getParents()) > 1:
+                pass
+            else:
+                pass
                 
+            # Draw commits in black
+            context.set_source_rgb(0, 0, 0)
+            radius = min(5, 5)
+            context.arc(passOffset, nodeHeight, radius, 0, 2 * math.pi)
+            context.stroke()
+
+            if commit.getRefs():
+                setAxisColor(2)
+                context.rectangle(passOffset - 5, nodeHeight - 50, 10, 40)
+                context.fill_preserve()
+                context.set_source_rgb(0, 0, 0)
+                context.rectangle(passOffset - 5, nodeHeight - 50, 10, 40)
                 context.stroke()
 
-                count += 1
-
+            # Reset to the line color
+            setAxisColor(0)
+            context.move_to(passOffset - 15, nodeHeight)
+            context.rel_line_to(10, 0)
+            context.stroke()
+            
             passOffset += 20
 
-    def __init__(self, graph):
+
+    def __init__(self, commitList):
         super(gtk.DrawingArea, self).__init__()
-        self.graph = graph
+        self.commitList = commitList 
 
-def readGitLog():
-    process = os.popen('git log --graph --pretty=oneline', 'r')
+class Node:
+    def getHash(self):
+        return self.hash
 
-    sys.stdout.flush()
-    
-    result = []
+    def getRefs(self):
+        return self.refs
 
-    while True:
-        commit = process.readline()
+    def getParents(self):
+        return self.parents
 
-        if not commit:
-            break
+    def addRef(self, ref):
+        self.refs.append(ref)
 
-        axisList = []
+    def __init__(self, hash, parents, refs = []):
+        self.hash = hash
+        self.parents = parents
+        self.refs = refs
 
-        for i in commit:
-
-            if not re.search(pattern, i):
-                break
-
-            axisList.append(i)
-
-        if axisList:
-            result.append(axisList)
-
-    result.reverse()
-
-    return result
-
-def drawCairoGraph():
+def drawCairoGraph(commitList):
     window= gtk.Window()
     window.connect('delete-event', lambda w, q: gtk.main_quit())
-    widget = Graph(readGitLog())
+    widget = Graph(commitList)
     widget.show()
     window.add(widget)
     window.present()
 
     gtk.main()
 
+def buildCommitList():
+    repo = Repo(os.getcwd())
+
+    commitList = []
+
+    head = repo.get_refs()['HEAD']
+    currentCommit = head
+
+    while repo.get_parents(currentCommit):
+        parents = repo.get_parents(currentCommit)
+        refs = []
+
+        for ref,hash in repo.get_refs().items():
+            if hash == currentCommit:
+                refs.append(ref)
+
+        commitList.append(Node(currentCommit, parents, refs))
+
+        currentCommit = parents[0]
+
+    return commitList
+
 if __name__ == '__main__':
-    drawCairoGraph()
+    drawCairoGraph(buildCommitList())
