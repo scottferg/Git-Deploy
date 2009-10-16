@@ -122,6 +122,9 @@ def drawCairoGraph(commitList):
 
     gtk.main()
 
+'''
+Arbitrary change
+'''
 def buildCommitList():
     repo = Repo(os.getcwd())
 
