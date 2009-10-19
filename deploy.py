@@ -39,8 +39,10 @@ class MainUI:
                 if commit:
                     self.listStore.prepend([commit['hash'][:10], 
                                             commit['message'],
+                                            gtk.STOCK_APPLY,
                                             commit['author'],
-                                            commit['date']])
+                                            commit['date']
+                                            ])
                 else:
                     # TODO: Pop an alert here
                     pass
@@ -123,7 +125,7 @@ class MainUI:
         '''
         Create the empty tree store
         '''
-        self.listStore = gtk.ListStore(str, str, str, str)
+        self.listStore = gtk.ListStore(str, str, str, str, str)
         return
 
     def _getListModel(self):
@@ -143,6 +145,7 @@ class MainUI:
 
         self.commitRenderer = gtk.CellRendererText()
         self.descriptionRenderer = gtk.CellRendererText()
+        self.indicatorRenderer = gtk.CellRendererPixbuf()
         self.authorRenderer = gtk.CellRendererText()
         self.dateRenderer = gtk.CellRendererText()
 
@@ -154,16 +157,21 @@ class MainUI:
         self.descriptionColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.descriptionColumn.set_expand(True)
 
-        self.authorColumn = gtk.TreeViewColumn('Author', self.authorRenderer, text = 2)
+        self.indicatorColumn = gtk.TreeViewColumn('Current status', self.indicatorRenderer, stock_id = 2)
+        self.indicatorColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
+        self.indicatorColumn.set_expand(False)
+
+        self.authorColumn = gtk.TreeViewColumn('Author', self.authorRenderer, text = 3)
         self.authorColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.authorColumn.set_expand(False)
 
-        self.dateColumn = gtk.TreeViewColumn('Date', self.dateRenderer, text = 3)
+        self.dateColumn = gtk.TreeViewColumn('Date', self.dateRenderer, text = 4)
         self.dateColumn.set_sizing(gtk.TREE_VIEW_COLUMN_AUTOSIZE)
         self.dateColumn.set_expand(False)
 
         self.treeView.append_column(self.commitColumn)
         self.treeView.append_column(self.descriptionColumn)
+        self.treeView.append_column(self.indicatorColumn)
         self.treeView.append_column(self.authorColumn)
         self.treeView.append_column(self.dateColumn)
         self.treeView.set_expander_column(self.descriptionColumn)
@@ -244,10 +252,14 @@ class MainUI:
         self.btnDisplayList = glade.get_widget('btnDisplayList')
         self.txtCommitEntry = glade.get_widget('txtCommitEntry')
         self.txtDiffView = glade.get_widget('txtDiffView')
+        self.lblCurrentRef = glade.get_widget('lblCurrentRef')
         self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
         self.graphWindow = glade.get_widget('graphWindow')
         self.commitContext = glade.get_widget('commitContext')
         self.window = glade.get_widget('mainWindow')
+
+        # Display the current ref
+        self.lblCurrentRef.set_text('<b>' + self.lblCurrentRef.get_text() + '</b> ' + gitHandler.getCurrentRef())
 
         # Initialize the treestore
         self._makeListModel()
@@ -270,7 +282,7 @@ class MainUI:
         self.wndScrolledWindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
-        self.graphWindow.add_with_viewport(graph.Graph(graph.readGitLog()))
+        # self.graphWindow.add_with_viewport(graph.Graph(graph.readGitLog()))
 
         # Attach event handlers
         self.selectedCommit.connect('changed', self.onCommitSelected)
