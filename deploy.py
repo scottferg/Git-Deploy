@@ -260,7 +260,6 @@ class MainUI:
 
         # Display the current ref
         self.lblCurrentRef.set_text('<b>' + self.lblCurrentRef.get_text() + '</b> ' + gitHandler.getCurrentRef())
-        self.lblCurrentRef.set_use_markup(True)
 
         # Initialize the treestore
         self._makeListModel()

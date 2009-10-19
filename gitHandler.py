@@ -3,8 +3,6 @@ import sys, os
 import getopt
 import time
 
-from dulwich.repo import Repo
-
 try:
     repo = git.Repo(os.getcwd())
 except git.errors.InvalidGitRepositoryError:
@@ -99,13 +97,7 @@ def getCurrentRef():
     '''
     Returns the current ref which HEAD is pointed to
     '''
-    repo = Repo(os.getcwd())
-
-    for ref, hash in repo.get_refs().items():
-        if hash == repo.get_refs()['HEAD'] and ref is not 'HEAD':
-            return ref
-
-    return None
+    return repo.active_branch
     
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
