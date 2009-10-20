@@ -105,6 +105,9 @@ def cherryPickCommit(hash):
     Cherry picks the specified commit
     '''
     try:
+        if repo.is_dirty:
+            cmd.execute('git reset --hard')
+
         cmd.execute('git cherry-pick -n %s' % hash)
     except git.errors.GitCommandError:
         return False
