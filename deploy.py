@@ -13,7 +13,6 @@ import threading
 
 import gitHandler
 import fileListWindow
-import graph
 import observer
 
 gobject.threads_init()
@@ -29,10 +28,11 @@ class StatusThread(threading.Thread, observer.Subject):
         for hash in self.hashList:
             result = gitHandler.cherryPickCommit(hash)
 
+            print result
             if result:
-                self.notify(True, self.hash)
+                self.notify(True, hash)
             else:
-                self.notify(False, self.hash)
+                self.notify(False, hash)
 
 class MainUI(observer.Observer):
 
@@ -290,6 +290,8 @@ class MainUI(observer.Observer):
             if currentHash == args[2]:
                 self.listStore.set_value(iter, 2, status)
                 break
+            
+            iter = self.listStore.iter_next(iter)
 
     def __init__(self, *args):
         # Pull widgets from Glade
