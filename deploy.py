@@ -19,19 +19,20 @@ import observer
 gobject.threads_init()
 
 class StatusThread(threading.Thread, observer.Subject):
-    def __init__(self, hash, parent):
-        self.hash = hash
+    def __init__(self, hashList, parent):
+        self.hashList = hashList
         threading.Thread.__init__(self)
         observer.Subject.__init__(self)
         self.attach(parent)
 
     def run(self):
-        result = gitHandler.cherryPickCommit(self.hash)
+        for hash in self.hashList:
+            result = gitHandler.cherryPickCommit(hash)
 
-        if result:
-            self.notify(True, self.hash)
-        else:
-            self.notify(False, self.hash)
+            if result:
+                self.notify(True, self.hash)
+            else:
+                self.notify(False, self.hash)
 
 class MainUI(observer.Observer):
 
@@ -72,11 +73,14 @@ class MainUI(observer.Observer):
 
     def _checkCommitStatus(self):
         iter = self.listStore.get_iter_first()
+        hashList = []
 
         while iter:
-            StatusThread(self.listStore.get_value(iter, 0), self).start()
+            hashList.append(self.listStore.get_value(iter, 0))
 
             iter = self.listStore.iter_next(iter)
+        
+        StatusThread(hashList, self).start()
 
     def _getFormattedDiffBuffer(self, commit):
         '''
