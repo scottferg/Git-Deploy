@@ -9,12 +9,31 @@ import pango
 
 import os, sys
 import getopt
+import threading
 
 import gitHandler
 import fileListWindow
 import graph
+import observer
 
-class MainUI:
+gobject.threads_init()
+
+class StatueThread(threading.Thread, observer.Subject):
+    def __init__(self, hash, parent):
+        self.hash = hash
+        threading.Thread.__init__(self)
+        observer.Subject.__init__(self)
+        self.attach(parent)
+
+    def run(self):
+        result = gitHandler.cherryPickCommit(self.hash)
+
+        if result:
+            self.notify(True)
+        else:
+            self.notify(False)
+
+class MainUI(observer.Observer):
 
     def _checkCommitInList(self, commit):
         '''
@@ -50,6 +69,14 @@ class MainUI:
             pass
 
         return
+
+    def _checkCommitStatus(self):
+        iter = self.listStore.get_iter_first()
+
+        while iter:
+            StatusThread(self.listStore.get_value(iter, 0), self)
+
+            iter = self.listStore.iter_next(iter)
 
     def _getFormattedDiffBuffer(self, commit):
         '''
@@ -244,6 +271,9 @@ class MainUI:
             
             return True
 
+    def update(self, *args):
+        print '\n'.join(['%s' % x for x in args])
+
     def __init__(self, *args):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
@@ -294,6 +324,7 @@ class MainUI:
         # Display the window
         self.window.show_all()
 
+        # Parse command line arguments
         if args:
             if args[0][0] == 'tag':
                 pass
@@ -304,6 +335,8 @@ class MainUI:
             elif args[0][0] == 'branch':
                 for commit in gitHandler.getBranch(args[0][1]):
                     self._addCommit(commit)
+
+        self._checkCommitStatus()
 
     def main(self):
         gtk.main()

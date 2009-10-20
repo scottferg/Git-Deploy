@@ -5,6 +5,7 @@ import time
 
 try:
     repo = git.Repo(os.getcwd())
+    cmd = git.Git(os.getcwd())
 except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
@@ -98,6 +99,17 @@ def getCurrentRef():
     Returns the current ref which HEAD is pointed to
     '''
     return repo.active_branch
+
+def cherryPickCommit(hash):
+    '''
+    Cherry picks the specified commit
+    '''
+    try:
+        cmd.execute('git cherry-pick -n %s' % hash)
+    except git.errors.GitCommandError:
+        return False
+
+    return True
     
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
