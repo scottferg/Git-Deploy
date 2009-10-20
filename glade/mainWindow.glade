@@ -70,7 +70,7 @@
               <widget class="GtkLabel" id="lblCurrentRef">
                 <property name="visible">True</property>
                 <property name="xalign">0</property>
-                <property name="label" translatable="yes">&lt;b&gt;Current branch:&lt;/b&gt;</property>
+                <property name="label" translatable="yes" context="yes">&lt;b&gt;Current branch:&lt;/b&gt;</property>
                 <property name="use_markup">True</property>
               </widget>
               <packing>
@@ -209,5 +209,69 @@
   </widget>
   <widget class="GtkMenu" id="commitContext">
     <property name="visible">True</property>
+  </widget>
+  <widget class="GtkWindow" id="wndProgressDialog">
+    <property name="width_request">250</property>
+    <property name="title" translatable="yes">Operation Progress</property>
+    <property name="resizable">False</property>
+    <property name="modal">True</property>
+    <property name="window_position">GTK_WIN_POS_CENTER</property>
+    <child>
+      <widget class="GtkVBox" id="vbox1">
+        <property name="visible">True</property>
+        <property name="spacing">4</property>
+        <child>
+          <widget class="GtkLabel" id="lblTitle">
+            <property name="visible">True</property>
+            <property name="label" translatable="yes">&lt;b&gt;Operation progress&lt;/b&gt;</property>
+            <property name="use_markup">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">4</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkProgressBar" id="prgOperationProgress">
+            <property name="visible">True</property>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child>
+          <widget class="GtkHButtonBox" id="hbuttonbox1">
+            <property name="visible">True</property>
+            <property name="spacing">6</property>
+            <property name="layout_style">GTK_BUTTONBOX_END</property>
+            <child>
+              <placeholder/>
+            </child>
+            <child>
+              <widget class="GtkButton" id="btnOkay">
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="label" translatable="yes">Okay</property>
+                <property name="response_id">0</property>
+                <signal name="clicked" handler="onBtnOkayClicked"/>
+              </widget>
+              <packing>
+                <property name="position">1</property>
+              </packing>
+            </child>
+          </widget>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="padding">4</property>
+            <property name="position">2</property>
+          </packing>
+        </child>
+      </widget>
+    </child>
   </widget>
 </glade-interface>

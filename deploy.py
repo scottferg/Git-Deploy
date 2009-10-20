@@ -13,6 +13,7 @@ import threading
 
 import gitHandler
 import fileListWindow
+import progressWindowDialog
 import observer
 
 gobject.threads_init()
@@ -279,11 +280,13 @@ class MainUI(observer.Observer):
             return True
 
     def onCherryPick(self, data = None):
+        # get_selected() returns (model, treeiter)
         model,iter = self.treeView.get_selection().get_selected()
 
         commit = self.listStore.get_value(iter, 0)
 
-        result = gitHandler.cherryPickCommit(commit)
+        # result = gitHandler.cherryPickCommit(commit)
+        result = progressWindowDialog.ProgressWindowDialog(gitHandler.cherryPickCommit, commit)
 
         if result:
             return
