@@ -278,6 +278,18 @@ class MainUI(observer.Observer):
             
             return True
 
+    def onCherryPick(self, data = None):
+        model,iter = self.treeView.get_selection().get_selected()
+
+        commit = self.listStore.get_value(iter, 0)
+
+        result = gitHandler.cherryPickCommit(commit)
+
+        if result:
+            return
+        else:
+            print 'Error'
+
     def update(self, *args):
         status = gtk.STOCK_DIALOG_ERROR
     
@@ -325,6 +337,7 @@ class MainUI(observer.Observer):
 
         # Setup context menu for commit list
         menuItem = gtk.MenuItem('Cherry-pick this commit')
+        menuItem.connect('activate', self.onCherryPick)
         self.commitContext.append(menuItem)
         menuItem.show()
         menuItem = gtk.MenuItem('Revert this commit')
