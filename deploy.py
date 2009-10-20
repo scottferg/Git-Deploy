@@ -18,7 +18,7 @@ import observer
 
 gobject.threads_init()
 
-class StatueThread(threading.Thread, observer.Subject):
+class StatusThread(threading.Thread, observer.Subject):
     def __init__(self, hash, parent):
         self.hash = hash
         threading.Thread.__init__(self)
@@ -29,9 +29,9 @@ class StatueThread(threading.Thread, observer.Subject):
         result = gitHandler.cherryPickCommit(self.hash)
 
         if result:
-            self.notify(True)
+            self.notify(True, self.hash)
         else:
-            self.notify(False)
+            self.notify(False, self.hash)
 
 class MainUI(observer.Observer):
 
@@ -58,7 +58,7 @@ class MainUI(observer.Observer):
                 if commit:
                     self.listStore.prepend([commit['hash'][:10], 
                                             commit['message'],
-                                            gtk.STOCK_APPLY,
+                                            gtk.STOCK_REFRESH,
                                             commit['author'],
                                             commit['date']
                                             ])
@@ -74,7 +74,7 @@ class MainUI(observer.Observer):
         iter = self.listStore.get_iter_first()
 
         while iter:
-            StatusThread(self.listStore.get_value(iter, 0), self)
+            StatusThread(self.listStore.get_value(iter, 0), self).start()
 
             iter = self.listStore.iter_next(iter)
 
@@ -272,7 +272,20 @@ class MainUI(observer.Observer):
             return True
 
     def update(self, *args):
-        print '\n'.join(['%s' % x for x in args])
+        status = gtk.STOCK_DIALOG_ERROR
+    
+        if args[1]:
+            status = gtk.STOCK_APPLY
+
+        iter = self.listStore.get_iter_first()
+
+        # Find the commit in the list, and set the status
+        while iter:
+            currentHash = self.listStore.get_value(iter, 0)
+
+            if currentHash == args[2]:
+                self.listStore.set_value(iter, 2, status)
+                break
 
     def __init__(self, *args):
         # Pull widgets from Glade
