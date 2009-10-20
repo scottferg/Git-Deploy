@@ -50,7 +50,7 @@ class MainUI(observer.Observer):
 
         return False
 
-    def _addCommit(self, hash):
+    def _addCommit(self, hash, checkCommit = False):
         '''
         Add a commit to the list
         '''
@@ -66,7 +66,8 @@ class MainUI(observer.Observer):
                                             commit['author'],
                                             commit['date']
                                             ])
-                    StatusThread([commit['hash']], self).start()
+                    if checkCommit:
+                        StatusThread([commit['hash']], self).start()
                 else:
                     # TODO: Pop an alert here
                     pass
@@ -218,7 +219,7 @@ class MainUI(observer.Observer):
         '''
         Handler for okay button
         '''
-        self._addCommit(self.txtCommitEntry.get_text())
+        self._addCommit(self.txtCommitEntry.get_text(), True)
         self.txtCommitEntry.set_text('')
         return
 
@@ -248,7 +249,7 @@ class MainUI(observer.Observer):
 
     def onTxtCommitEntryKeyDown(self, widget, event, data = None):
         if event.keyval == 65293:
-            self._addCommit(self.txtCommitEntry.get_text())
+            self._addCommit(self.txtCommitEntry.get_text(), True)
             self.txtCommitEntry.set_text('')
 
         return
@@ -370,7 +371,7 @@ class MainUI(observer.Observer):
                 for commit in gitHandler.getCommitsSinceTag(args[0][1]):
                     self._addCommit(commit)
             elif args[0][0] == 'commit':
-                self._addCommit(args[0][1])
+                self._addCommit(args[0][1], True)
             elif args[0][0] == 'branch':
                 for commit in gitHandler.getBranch(args[0][1]):
                     self._addCommit(commit)
