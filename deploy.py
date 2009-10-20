@@ -25,6 +25,7 @@ class StatusThread(threading.Thread, observer.Subject):
         self.attach(parent)
 
     def run(self):
+        # TODO: Stash here, then apply when completed
         for hash in self.hashList:
             result = gitHandler.cherryPickCommit(hash, True)
 
