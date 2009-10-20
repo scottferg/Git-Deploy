@@ -4,16 +4,38 @@ import gtk
 import gtk.glade
 import gobject
 
-import time
+import observer
 
+import threading
 import os,sys
 
-class ProgressWindowDialog:
+gobject.threads_init()
+
+class OperationThread(threading.Thread, observer.Subject):
+    def __init__(self, operation, params, parent):
+        self.operation = operation
+        self.params = params
+        observer.Subject.__init__(self)
+        threading.Thread.__init__(self)
+        self.attach(parent)
+
+        # Tell the control that we've started the thread
+        self.notify('STARTED')
+
+    def run(self):
+        print self.params
+        result = self.operation(self.params)
+
+        print result
+
+        if result:
+            self.notify(True)
+        else:
+            self.notify(False)
+
+class ProgressWindowDialog(observer.Observer):
     def _performOperation(self):
-        self.prgOperationProgress.set_fraction(0.25)
-        self.operation(self.param)
-        self.prgOperationProgress.set_fraction(1)
-        self.btnOkay.set_sensitive(True)
+        OperationThread(self.operation, self.param, self).start()
 
     def onWindowShow(self, widget, data = None):
         self._performOperation()
@@ -23,6 +45,13 @@ class ProgressWindowDialog:
 
     def deleteEvent(self, widget, event, data = None):
         self.window.destroy()
+
+    def update(self, *args):
+        if args[1] == 'STARTED':
+            self.prgOperationProgress.set_fraction(0.25)
+        else:
+            self.prgOperationProgress.set_fraction(1)
+            self.btnOkay.set_sensitive(True)
 
     def __init__(self, operationName, operation, param):
         # Pull widgets from Glade

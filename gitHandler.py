@@ -106,7 +106,6 @@ def cherryPickCommit(hash, noCommit = False):
     '''
     try:
         cleanBranch()
-
         cmd.execute('git cherry-pick %s %s' % (noCommit and '-n' or '', hash))
     except git.errors.GitCommandError:
         return False
