@@ -4,6 +4,8 @@ import gtk
 import gtk.glade
 import gobject
 
+import time
+
 import os,sys
 
 class ProgressWindowDialog:
@@ -13,13 +15,16 @@ class ProgressWindowDialog:
         self.prgOperationProgress.set_fraction(1)
         self.btnOkay.set_sensitive(True)
 
+    def onWindowShow(self, widget, data = None):
+        self._performOperation()
+
     def onBtnOkayClicked(self, widget, data = None):
         self.window.destroy()
 
     def deleteEvent(self, widget, event, data = None):
         self.window.destroy()
 
-    def __init__(self, operation, param):
+    def __init__(self, operationName, operation, param):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
 
@@ -28,8 +33,9 @@ class ProgressWindowDialog:
         self.lblTitle = glade.get_widget('lblTitle')
         self.window = glade.get_widget('wndProgressDialog')
 
-        # Disable the okay button
-        self.btnOkay.set_sensitive(False)
+        self.window.connect('show', self.onWindowShow)
+
+        self.lblTitle.set_text(operationName)
 
         glade.signal_autoconnect(self)
 
@@ -38,4 +44,3 @@ class ProgressWindowDialog:
 
         # Display the window
         self.window.show_all()
-        self._performOperation()

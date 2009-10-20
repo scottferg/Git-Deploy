@@ -285,8 +285,9 @@ class MainUI(observer.Observer):
 
         commit = self.listStore.get_value(iter, 0)
 
-        # result = gitHandler.cherryPickCommit(commit)
-        result = progressWindowDialog.ProgressWindowDialog(gitHandler.cherryPickCommit, commit)
+        result = progressWindowDialog.ProgressWindowDialog('Cherry pick commit', 
+                                                           gitHandler.cherryPickCommit, 
+                                                           commit)
 
         if result:
             return

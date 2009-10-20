@@ -212,6 +212,7 @@
   </widget>
   <widget class="GtkWindow" id="wndProgressDialog">
     <property name="width_request">250</property>
+    <property name="border_width">8</property>
     <property name="title" translatable="yes">Operation Progress</property>
     <property name="resizable">False</property>
     <property name="modal">True</property>
@@ -223,8 +224,11 @@
         <child>
           <widget class="GtkLabel" id="lblTitle">
             <property name="visible">True</property>
+            <property name="xalign">0</property>
+            <property name="yalign">0</property>
             <property name="label" translatable="yes">&lt;b&gt;Operation progress&lt;/b&gt;</property>
             <property name="use_markup">True</property>
+            <property name="ellipsize">PANGO_ELLIPSIZE_START</property>
           </widget>
           <packing>
             <property name="expand">False</property>
@@ -253,11 +257,13 @@
             <child>
               <widget class="GtkButton" id="btnOkay">
                 <property name="visible">True</property>
+                <property name="sensitive">False</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
                 <property name="label" translatable="yes">Okay</property>
                 <property name="response_id">0</property>
                 <signal name="clicked" handler="onBtnOkayClicked"/>
+                <signal name="show" handler="onWindowShow"/>
               </widget>
               <packing>
                 <property name="position">1</property>
