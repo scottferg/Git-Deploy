@@ -100,14 +100,14 @@ def getCurrentRef():
     '''
     return repo.active_branch
 
-def cherryPickCommit(hash):
+def cherryPickCommit(hash, noCommit = False):
     '''
     Cherry picks the specified commit
     '''
     try:
         cleanBranch()
 
-        cmd.execute('git cherry-pick -n %s' % hash)
+        cmd.execute('git cherry-pick %s %s' % (noCommit and '-n' or '', hash))
     except git.errors.GitCommandError:
         return False
 

@@ -26,9 +26,8 @@ class StatusThread(threading.Thread, observer.Subject):
 
     def run(self):
         for hash in self.hashList:
-            result = gitHandler.cherryPickCommit(hash)
+            result = gitHandler.cherryPickCommit(hash, True)
 
-            print result
             if result:
                 self.notify(True, hash)
             else:
