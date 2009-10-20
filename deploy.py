@@ -64,6 +64,7 @@ class MainUI(observer.Observer):
                                             commit['author'],
                                             commit['date']
                                             ])
+                    StatusThread([commit['hash']], self).start()
                 else:
                     # TODO: Pop an alert here
                     pass
@@ -288,7 +289,7 @@ class MainUI(observer.Observer):
         while iter:
             currentHash = self.listStore.get_value(iter, 0)
 
-            if currentHash == args[2]:
+            if currentHash == args[2][:10]:
                 self.listStore.set_value(iter, 2, status)
                 break
             
