@@ -64,7 +64,8 @@ class ProgressWindowDialog(observer.Observer):
 
         self.window.connect('show', self.onWindowShow)
 
-        self.lblTitle.set_text(operationName)
+        self.lblTitle.set_text('<b>%s</b>' % operationName)
+        self.lblTitle.set_use_markup(True)
 
         glade.signal_autoconnect(self)
 
