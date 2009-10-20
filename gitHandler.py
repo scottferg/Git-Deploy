@@ -9,6 +9,9 @@ try:
 except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
+prepareBranch = lambda: cmd.execute('git stash')
+restoreBranch = lambda: cmd.execute('git stash apply')
+
 def findParentCommit(commit):
     '''
     Returns parents of a commit

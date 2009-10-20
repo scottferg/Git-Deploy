@@ -26,7 +26,9 @@ class StatusThread(threading.Thread, observer.Subject):
         self.attach(parent)
 
     def run(self):
-        # TODO: Stash here, then apply when completed
+        # Stash first, so that we don't accidentally overwrite anything
+        gitHandler.prepareBranch()
+
         for hash in self.hashList:
             result = gitHandler.cherryPickCommit(hash, True)
 
@@ -36,6 +38,8 @@ class StatusThread(threading.Thread, observer.Subject):
                 self.notify(False, hash)
 
         gitHandler.cleanBranch()
+        # Restore the working branch
+        gitHandler.restoreBranch()
 
 class MainUI(observer.Observer):
 
