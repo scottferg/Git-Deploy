@@ -34,6 +34,8 @@ class StatusThread(threading.Thread, observer.Subject):
             else:
                 self.notify(False, hash)
 
+        gitHandler.cleanBranch()
+
 class MainUI(observer.Observer):
 
     def _checkCommitInList(self, commit):

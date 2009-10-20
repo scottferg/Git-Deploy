@@ -105,14 +105,17 @@ def cherryPickCommit(hash):
     Cherry picks the specified commit
     '''
     try:
-        if repo.is_dirty:
-            cmd.execute('git reset --hard')
+        cleanBranch()
 
         cmd.execute('git cherry-pick -n %s' % hash)
     except git.errors.GitCommandError:
         return False
 
     return True
+
+def cleanBranch(force = False):
+    if repo.is_dirty or force:
+        cmd.execute('git reset --hard')
     
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
