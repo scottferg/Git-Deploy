@@ -10,6 +10,7 @@ import pango
 import os, sys
 import getopt
 import threading
+import glob
 
 import gitHandler
 import fileListWindow
@@ -219,6 +220,28 @@ class MainUI(observer.Observer):
 
         return self.treeView
     
+    def _buildRefsList(self):
+        self.cmbSelectBranch = gtk.combo_box_new_text()
+
+        heads = glob.glob('.git/refs/heads/*')
+        remotes = glob.glob('.git/refs/remotes/*')
+
+        self.branchStore = gtk.ListStore(str)
+        self.cmbSelectBranch.set_model(self.branchStore)
+
+        heads = ['%s' % ref.split('\\')[1] for ref in heads]
+        remotes = ['%s' % ref.split('\\')[1] for ref in remotes]
+
+        cell = gtk.CellRendererText()
+        self.cmbSelectBranch.pack_start(cell, True)
+
+        for ref in heads:
+            self.cmbSelectBranch.append_text(ref)
+
+        self.cmbSelectBranch.set_active(heads.index(gitHandler.activeBranch()))
+
+        self.hbxBranchBox.pack_start(self.cmbSelectBranch, False, False)
+
     def onBtnAddClicked(self, widget, data = None):
         '''
         Handler for okay button
@@ -299,6 +322,12 @@ class MainUI(observer.Observer):
         else:
             print 'Error'
 
+    def onBranchChanged(self, widget, data = None):
+        model = self.cmbSelectBranch.get_model()
+        index = self.cmbSelectBranch.get_active()
+
+        gitHandler.checkoutBranch(model[index][0])
+
     def update(self, *args):
         status = gtk.STOCK_DIALOG_ERROR
     
@@ -325,15 +354,11 @@ class MainUI(observer.Observer):
         self.btnDisplayList = glade.get_widget('btnDisplayList')
         self.txtCommitEntry = glade.get_widget('txtCommitEntry')
         self.txtDiffView = glade.get_widget('txtDiffView')
-        self.lblCurrentRef = glade.get_widget('lblCurrentRef')
         self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
         self.graphWindow = glade.get_widget('graphWindow')
+        self.hbxBranchBox = glade.get_widget('hbxBranchBox')
         self.commitContext = glade.get_widget('commitContext')
         self.window = glade.get_widget('mainWindow')
-
-        # Display the current ref
-        self.lblCurrentRef.set_text('<b>' + self.lblCurrentRef.get_text() + '</b> ' + gitHandler.getCurrentRef())
-        self.lblCurrentRef.set_use_markup(True)
 
         # Initialize the treestore
         self._makeListModel()
@@ -343,6 +368,9 @@ class MainUI(observer.Observer):
         # Initialize tree view selector
         self.selectedCommit = self.treeView.get_selection()
         self.selectedCommit.set_mode(gtk.SELECTION_SINGLE)
+
+        # Setup branch selection list
+        self._buildRefsList()
 
         # Setup context menu for commit list
         menuItem = gtk.MenuItem('Cherry-pick this commit')
@@ -360,6 +388,7 @@ class MainUI(observer.Observer):
         # self.graphWindow.add_with_viewport(graph.Graph(graph.readGitLog()))
 
         # Attach event handlers
+        self.cmbSelectBranch.connect('changed', self.onBranchChanged)
         self.selectedCommit.connect('changed', self.onCommitSelected)
         self.treeView.connect('button_press_event', self.onCommitClicked)
         self.window.connect('delete_event', lambda w, q: gtk.main_quit())
@@ -374,13 +403,14 @@ class MainUI(observer.Observer):
                 pass
                 for commit in gitHandler.getCommitsSinceTag(args[0][1]):
                     self._addCommit(commit)
+                    self._checkCommitStatus()
             elif args[0][0] == 'commit':
                 self._addCommit(args[0][1], True)
+                self._checkCommitStatus()
             elif args[0][0] == 'branch':
                 for commit in gitHandler.getBranch(args[0][1]):
                     self._addCommit(commit)
-
-        self._checkCommitStatus()
+                    self._checkCommitStatus()
 
     def main(self):
         gtk.main()

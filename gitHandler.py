@@ -11,6 +11,7 @@ except git.errors.InvalidGitRepositoryError:
 
 prepareBranch = lambda: cmd.execute('git stash')
 restoreBranch = lambda: cmd.execute('git stash apply')
+activeBranch = lambda: repo.active_branch
 
 def findParentCommit(commit):
     '''
@@ -118,6 +119,17 @@ def cherryPickCommit(hash, noCommit = False):
 def cleanBranch(force = False):
     if repo.is_dirty or force:
         cmd.execute('git reset --hard')
+
+def checkoutBranch(branch):
+    try:
+        # head = open('.git/HEAD', 'w')
+        # head.write('ref: refs/heads/%s' % branch)
+        # head.close()
+        cmd.execute('git checkout %s' % branch)
+    except git.errors.GitCommandError:
+        return False
+
+    return
     
 def main():
     options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');

@@ -10,9 +10,6 @@ import cairo
 
 import math
 
-from dulwich.repo import Repo
-from dulwich.objects import Commit
-
 # Create a GTK+ widget on which we will draw using Cairo
 class Graph(gtk.DrawingArea):
     # Draw in response to an expose-event
@@ -200,27 +197,6 @@ def buildCommitList():
             }
 
     return graph
-
-    repo = Repo(os.getcwd())
-
-    commitList = []
-
-    head = repo.get_refs()['HEAD']
-    currentCommit = head
-
-    while repo.get_parents(currentCommit):
-        parents = repo.get_parents(currentCommit)
-        refs = []
-
-        for ref,hash in repo.get_refs().items():
-            if hash == currentCommit:
-                refs.append(ref)
-
-        commitList.append(Node(currentCommit, parents, refs))
-
-        currentCommit = parents[0]
-
-    return commitList
 
 if __name__ == '__main__':
     drawCairoGraph(buildCommitList())
