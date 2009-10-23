@@ -106,8 +106,8 @@ class Graph(gtk.DrawingArea):
                     context.move_to(origin[0] - 10, origin[1])
                     context.line_to(destination[0], destination[1])
                 elif origin[1] > destination[1]:
-                    context.curve_to(origin[0] - 10, origin[1], 
-                                     origin[0] - 5, origin[1] - 5, 
+                    context.curve_to(origin[0] - 15, origin[1], 
+                                     origin[0] - 7, origin[1] + 5, 
                                      destination[0] - 2, destination[1] + 5)
                 else:
                     context.curve_to(origin[0] - 7, origin[1] + 5, 
