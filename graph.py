@@ -44,6 +44,7 @@ class Graph(gtk.DrawingArea):
 
         for node,children in self.commitList.items():
             self._drawGraph(node, 15, height / 2, context)
+            self._drawEdge(node, context)
 
     def _drawGraph(self, node, offset, height, context, parentNode = None):
         # Iterate over each node in the list
@@ -69,33 +70,51 @@ class Graph(gtk.DrawingArea):
         self.drawnNodes[node] = (x, y) = context.get_current_point()
         context.stroke()
 
-        # If we have a parent, connect to it with a line
-        if parentNode:
-            origin = self.drawnNodes[node]
-            destination = self.drawnNodes[parentNode]
-
-            print 'Current: %s and Y: %s' % (node, origin[1])
-            print 'Parent: %s and Y: %s' % (parentNode, destination[1])
-
-            self.setAxisColor(1)
-
-            # If both nodes are at the same height draw a line
-            if origin[1] == destination[1]:
-                context.move_to(origin[0] - 10, origin[1])
-                context.line_to(destination[0], destination[1])
-            else:
-                context.curve_to(origin[0] - 7, origin[1] + 5, 
-                                 origin[0] - 15, origin[1], 
-                                 destination[0], destination[1])
-
-        context.stroke()
-
         # Draw the children
         for child in self.commitList[node]:
             self._drawGraph(child, offset + 20, height, context, node)
             height = height - 50
 
         return            
+
+    def _getParentNodes(self, node):
+        result = []
+        
+        print node
+        for parent,children in self.commitList.items():
+            if node in children:
+                result.append(parent)
+                print result
+
+        return result
+
+    def _drawEdge(self, node, context):
+        # Find all nodes that have the current node as a child
+        parentNode = self._getParentNodes(node)
+        # If we have a parent, connect to it with a line
+        if parentNode:
+            for parent in parentNode:
+                origin = self.drawnNodes[node]
+                destination = self.drawnNodes[parent]
+
+                self.setAxisColor(1)
+
+                # If both nodes are at the same height draw a line
+                if origin[1] == destination[1]:
+                    context.move_to(origin[0] - 10, origin[1])
+                    context.line_to(destination[0], destination[1])
+                else:
+                    context.curve_to(origin[0] - 7, origin[1] + 5, 
+                                     origin[0] - 15, origin[1], 
+                                     destination[0], destination[1])
+
+                '''
+                print 'Current: %s and Y: %s' % (node, origin[1])
+                print 'Parent: %s and Y: %s' % (parent, destination[1])
+                '''
+                context.stroke()
+
+        return context
 
     def __init__(self, commitList):
         super(gtk.DrawingArea, self).__init__()
@@ -148,7 +167,7 @@ def buildCommitList():
              'B': ['C'],
              'C': ['D', 'E'],
              'D': ['F'],
-             'E': ['F', 'K'],
+             'E': ['F'],
              'F': ['G'],
              'G': ['H', 'I'],
              'H': ['J'],
