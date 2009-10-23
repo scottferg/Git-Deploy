@@ -43,7 +43,9 @@ class Graph(gtk.DrawingArea):
         self.drawnNodes = {}
 
         for node,children in self.commitList.items():
+            # Draw the nodes
             self._drawGraph(node, 15, height / 2, context)
+            # Draw the edges
             self._drawEdge(node, context)
 
     def _drawGraph(self, node, offset, height, context, parentNode = None):
@@ -103,15 +105,17 @@ class Graph(gtk.DrawingArea):
                 if origin[1] == destination[1]:
                     context.move_to(origin[0] - 10, origin[1])
                     context.line_to(destination[0], destination[1])
+                elif origin[1] > destination[1]:
+                    context.curve_to(origin[0] - 10, origin[1], 
+                                     origin[0] - 5, origin[1] - 5, 
+                                     destination[0] - 2, destination[1] + 5)
                 else:
                     context.curve_to(origin[0] - 7, origin[1] + 5, 
                                      origin[0] - 15, origin[1], 
                                      destination[0], destination[1])
 
-                '''
                 print 'Current: %s and Y: %s' % (node, origin[1])
                 print 'Parent: %s and Y: %s' % (parent, destination[1])
-                '''
                 context.stroke()
 
         return context
@@ -167,7 +171,7 @@ def buildCommitList():
              'B': ['C'],
              'C': ['D', 'E'],
              'D': ['F'],
-             'E': ['F'],
+             'E': ['F', 'K'],
              'F': ['G'],
              'G': ['H', 'I'],
              'H': ['J'],
