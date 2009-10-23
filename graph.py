@@ -1,6 +1,3 @@
-import os, sys
-import re
-
 import pygtk
 pygtk.require("2.0")
 import gtk
@@ -40,104 +37,65 @@ class Graph(gtk.DrawingArea):
         axisColor.append([0.4, 0.4, 0])
         axisColor.append([0.65, 0.43, 0.1])
         axisColor.append([0.18, 0.05, 0.97])
-        axisColor.append([0.4, 0.4, 0])
-        axisColor.append([0.65, 0.43, 0.1])
-        axisColor.append([0.47, 0.1, 0.65])
-        axisColor.append([0.18, 0.05, 0.97])
 
-        setAxisColor = lambda count: context.set_source_rgb(axisColor[count][0],
-                                                            axisColor[count][1],
-                                                            axisColor[count][2])
+        self.setAxisColor = lambda count: context.set_source_rgb(axisColor[count][0], axisColor[count][1], axisColor[count][2])
 
-        passOffset = 55
-        count = 0
-        drawnNodeList = []
+        self.drawnNodes = {}
 
-        print self.commitList
-        for index,commit in self.commitList.items():
-            setAxisColor(3)
+        for node,children in self.commitList.items():
+            self._drawGraph(node, 15, height / 2, context)
 
-            nodeHeight = height / 2 
+    def _drawGraph(self, node, offset, height, context, parentNode = None):
+        # Iterate over each node in the list
+        # If the node has children, recursively pull the child from the
+        # overall list, and then draw it's children, and continue to traverse
+        # the path.
+        # 
+        # Log each node and it's coordinates as it is drawn, so that it can be 
+        # connected later if necessary
+        try:
+            self.drawnNodes[node]
+            # Node has already been drawn
+            return
+        except KeyError:
+            pass
 
-            nodeExists = False 
+        # Draw commits in black
+        radius = min(5, 5)
 
-            try:
-                ['%s' % x[0] for x in drawnNodeList].index(index)
-                print 'Skipping 1: ' + index
-            except ValueError:
-                lastNode = index 
-                print 'Drawing 1: ' + index 
-                # Draw commits in black
-                context.set_source_rgb(0, 0, 0)
-                radius = min(5, 5)
-                context.arc(passOffset, nodeHeight, radius, 0, 2 * math.pi)
-                currentPos = context.get_current_point()
-                context.stroke()
-                
-                drawnNodeList.append([index, currentPos])
-                pass
-            
+        context.set_source_rgb(0, 0, 0)
+        context.arc(offset + 5, height / 2, radius, 0, 2 * math.pi)
+        # Grab the current position
+        self.drawnNodes[node] = (x, y) = context.get_current_point()
+        context.stroke()
 
-            # TODO: Track each node as it is drawn out, with the
-            # coordinates stored within it.  If we come across a node that has
-            # already been drawn, don't draw it again.  Connect a curve to
-            # it instead.
-            # We have to draw the path to the following commits, 
-            # and then draw the commits themselves
-            verticalOffset = 0 
-            useCurve = False
+        # If we have a parent, connect to it with a line
+        if parentNode:
+            origin = self.drawnNodes[node]
+            destination = self.drawnNodes[parentNode]
 
-            for path in commit:
-                aNodeExists = False 
+            print 'Current: %s and Y: %s' % (node, origin[1])
+            print 'Parent: %s and Y: %s' % (parentNode, destination[1])
 
-                for node,pos in drawnNodeList:
-                    if node == path:
-                        print path + ' exists'
-                        aNodeExists = True
+            self.setAxisColor(1)
 
-                # Reset to the line color
-                setAxisColor(0)
+            # If both nodes are at the same height draw a line
+            if origin[1] == destination[1]:
+                context.move_to(origin[0] - 10, origin[1])
+                context.line_to(destination[0], destination[1])
+            else:
+                context.curve_to(origin[0] - 7, origin[1] + 5, 
+                                 origin[0] - 15, origin[1], 
+                                 destination[0], destination[1])
 
-                if aNodeExists:
-                    position = None
+        context.stroke()
 
-                    print 'Last: ' + lastNode
-                    for oldNode in drawnNodeList:
-                        if oldNode[0] == lastNode:
-                            position = oldNode[1]
-                            print oldNode
+        # Draw the children
+        for child in self.commitList[node]:
+            self._drawGraph(child, offset + 20, height, context, node)
+            height = height - 50
 
-                    context.move_to(position[0], position[1])
-                    context.rel_curve_to(0, 0, 0, -20, -10, -20)
-                    print 'Drawing curved ' + path
-                else:
-                    context.move_to(passOffset + 5, nodeHeight)
-
-                    if not useCurve:
-                        context.rel_line_to(10, verticalOffset)
-                        print 'Drawing 2: ' + path
-                    else:
-                        context.rel_curve_to(0, 0, 0, verticalOffset, 10, verticalOffset)
-                        print 'Drawing curved ' + path
-
-                    currentPos = context.get_current_point()
-                    drawnNodeList.append([path, currentPos])
-
-                context.stroke()
-
-                # Draw commits in black
-                context.set_source_rgb(0, 0, 0)
-                radius = min(5, 5)
-                context.arc(currentPos[0] + 5, currentPos[1], radius, 0, 2 * math.pi)
-                context.stroke()
-
-                print path
-                lastNode = path
-                useCurve = True
-                verticalOffset -= 20
-                
-            context.stroke()
-            passOffset += 20
+        return            
 
     def __init__(self, commitList):
         super(gtk.DrawingArea, self).__init__()
@@ -171,13 +129,14 @@ class Node:
         return False
 
     def __repr__(self):
-        return "<%s #%s object>" % (self.__class__.__name__, self._id)
+        return '<%s #%s object>' % (self.__class__.__name__, self._id)
 
 def drawCairoGraph(commitList):
     window= gtk.Window()
     window.connect('delete-event', lambda w, q: gtk.main_quit())
     widget = Graph(commitList)
     widget.show()
+    window.set_default_size(350, 350)
     window.add(widget)
     window.present()
 
@@ -185,15 +144,17 @@ def drawCairoGraph(commitList):
 
 def buildCommitList():
 
-    graph = {'A': ['C'],
+    graph = {'A': ['B'],
+             'B': ['C'],
              'C': ['D', 'E'],
              'D': ['F'],
-             'E': ['F'],
-             'F': ['G', 'I'],
-             'G': ['H'],
-             'H': ['I'],
+             'E': ['F', 'K'],
+             'F': ['G'],
+             'G': ['H', 'I'],
+             'H': ['J'],
              'I': ['J'],
-             'J': ['I']
+             'J': [],
+             'K': []
             }
 
     return graph
