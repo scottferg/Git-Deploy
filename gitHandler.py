@@ -9,8 +9,7 @@ try:
 except git.errors.InvalidGitRepositoryError:
     print 'Error: Not a git repository'
 
-prepareBranch = lambda: cmd.execute('git stash')
-restoreBranch = lambda: cmd.execute('git stash apply')
+fetch = lambda: cmd.execute('git fetch')
 activeBranch = lambda: repo.active_branch
 
 def findParentCommit(commit):
@@ -103,6 +102,20 @@ def getCurrentRef():
     Returns the current ref which HEAD is pointed to
     '''
     return repo.active_branch
+
+def prepareBranch():
+    if repo.is_dirty: 
+        cmd.execute('git stash')
+
+    return
+
+def restoreBranch():
+    try:
+        cmd.execute('git stash apply')
+    except git.errors.GitCommandError:
+        cleanBranch(True)
+
+    return
 
 def cherryPickCommit(hash, noCommit = False):
     '''

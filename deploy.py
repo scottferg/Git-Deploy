@@ -14,7 +14,7 @@ import glob
 
 import gitHandler
 import fileListWindow
-import progressWindowDialog
+from progressWindowDialog import ProgressWindowDialog
 import observer
 
 gobject.threads_init()
@@ -219,27 +219,30 @@ class MainUI(observer.Observer):
         self.treeView.set_rules_hint(True)
 
         return self.treeView
+
+    def _setRefsList(self, list):
+        self.branchStore = gtk.ListStore(str)
+        self.cmbSelectBranch.set_model(self.branchStore)
+
+        for ref in list:
+            self.cmbSelectBranch.append_text(ref)
+
+        self.cmbSelectBranch.set_active(list.index(gitHandler.activeBranch()))
     
     def _buildRefsList(self):
         self.cmbSelectBranch = gtk.combo_box_new_text()
 
         heads = glob.glob('.git/refs/heads/*')
-        remotes = glob.glob('.git/refs/remotes/*')
+        remotes = glob.glob('.git/refs/remotes/*/*')
 
-        self.branchStore = gtk.ListStore(str)
-        self.cmbSelectBranch.set_model(self.branchStore)
-
-        heads = ['%s' % ref.split('\\')[1] for ref in heads]
-        remotes = ['%s' % ref.split('\\')[1] for ref in remotes]
+        self.heads = ['%s' % ref.split('\\')[1] for ref in heads]
+        self.remotes = ['%s' % ref.split('remotes\\')[1].replace('\\', '/') for ref in remotes]
 
         cell = gtk.CellRendererText()
         self.cmbSelectBranch.pack_start(cell, True)
 
-        for ref in heads:
-            self.cmbSelectBranch.append_text(ref)
-
-        self.cmbSelectBranch.set_active(heads.index(gitHandler.activeBranch()))
-
+        self._setRefsList(self.heads)
+        
         self.hbxBranchBox.pack_start(self.cmbSelectBranch, False, False)
 
     def onBtnAddClicked(self, widget, data = None):
@@ -249,6 +252,13 @@ class MainUI(observer.Observer):
         self._addCommit(self.txtCommitEntry.get_text(), True)
         self.txtCommitEntry.set_text('')
         return
+
+    def onBtnFetchClicked(self, widget, data = None):
+        '''
+        Fetches the latest refs from the remote repositories
+        '''
+        result = ProgressWindowDialog('Fetch latest refs',
+                                      gitHandler.fetch)
 
     def onBtnDisplayListClicked(self, widget, data = None):
         '''
@@ -313,9 +323,9 @@ class MainUI(observer.Observer):
 
         commit = self.listStore.get_value(iter, 0)
 
-        result = progressWindowDialog.ProgressWindowDialog('Cherry pick commit', 
-                                                           gitHandler.cherryPickCommit, 
-                                                           commit)
+        result = ProgressWindowDialog('Cherry pick commit', 
+                                      gitHandler.cherryPickCommit, 
+                                      commit)
 
         if result:
             return
@@ -327,6 +337,13 @@ class MainUI(observer.Observer):
         index = self.cmbSelectBranch.get_active()
 
         gitHandler.checkoutBranch(model[index][0])
+
+        return
+
+    def onRemotesToggled(self, widget, data = None):
+        self._setRefsList(widget.get_active() and self.remotes or self.heads)
+
+        return
 
     def update(self, *args):
         status = gtk.STOCK_DIALOG_ERROR
@@ -345,6 +362,8 @@ class MainUI(observer.Observer):
                 break
             
             iter = self.listStore.iter_next(iter)
+        
+        return
 
     def __init__(self, *args):
         # Pull widgets from Glade

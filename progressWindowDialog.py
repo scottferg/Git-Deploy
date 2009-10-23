@@ -23,10 +23,10 @@ class OperationThread(threading.Thread, observer.Subject):
         self.notify('STARTED')
 
     def run(self):
-        print self.params
-        result = self.operation(self.params)
-
-        print result
+        if self.params:
+            result = self.operation(self.params)
+        else:
+            result = self.operation()
 
         if result:
             self.notify(True)
@@ -53,7 +53,7 @@ class ProgressWindowDialog(observer.Observer):
             self.prgOperationProgress.set_fraction(1)
             self.btnOkay.set_sensitive(True)
 
-    def __init__(self, operationName, operation, param):
+    def __init__(self, operationName, operation, param = None):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
 
