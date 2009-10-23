@@ -49,6 +49,9 @@ class Graph(gtk.DrawingArea):
             self._drawEdge(node, context)
 
     def _drawGraph(self, node, offset, height, context, parentNode = None):
+        '''
+        Draws the nodes of a graph
+        '''
         # Iterate over each node in the list
         # If the node has children, recursively pull the child from the
         # overall list, and then draw it's children, and continue to traverse
@@ -79,18 +82,10 @@ class Graph(gtk.DrawingArea):
 
         return            
 
-    def _getParentNodes(self, node):
-        result = []
-        
-        print node
-        for parent,children in self.commitList.items():
-            if node in children:
-                result.append(parent)
-                print result
-
-        return result
-
     def _drawEdge(self, node, context):
+        '''
+        Draws the edges for a given node
+        '''
         # Find all nodes that have the current node as a child
         parentNode = self._getParentNodes(node)
         # If we have a parent, connect to it with a line
@@ -114,11 +109,29 @@ class Graph(gtk.DrawingArea):
                                      origin[0] - 15, origin[1], 
                                      destination[0], destination[1])
 
-                print 'Current: %s and Y: %s' % (node, origin[1])
-                print 'Parent: %s and Y: %s' % (parent, destination[1])
                 context.stroke()
 
         return context
+
+    def _getParentNodes(self, node):
+        '''
+        Returns a list of a specific node's parent nodes
+        '''
+        result = []
+        
+        for parent,children in self.commitList.items():
+            if node in children:
+                result.append(parent)
+
+        return result
+
+    def _checkCurrentHeight(self, height, position):
+        for node,coordinates in self.drawnNodes.items():
+            if position[0] == coordinates[0] and position[1] == coordinates[1]:
+                # We already have a node in this position, bump up to the next level
+                return height - 50
+
+        return height
 
     def __init__(self, commitList):
         super(gtk.DrawingArea, self).__init__()
