@@ -423,14 +423,14 @@ class MainUI(observer.Observer):
                 pass
                 for commit in gitHandler.getCommitsSinceTag(args[0][1]):
                     self._addCommit(commit)
-                    self._checkCommitStatus()
+                self._checkCommitStatus()
             elif args[0][0] == 'commit':
                 self._addCommit(args[0][1], True)
                 self._checkCommitStatus()
             elif args[0][0] == 'branch':
                 for commit in gitHandler.getBranch(args[0][1]):
                     self._addCommit(commit)
-                    self._checkCommitStatus()
+                self._checkCommitStatus()
 
     def main(self):
         gtk.main()

@@ -90,7 +90,7 @@ class Graph(gtk.DrawingArea):
 
         return            
 
-    def _drawEdge(self, node, context):
+    def _drawEdge(self, node, context, edgeColor):
         '''
         Draws the edges for a given node
         '''
