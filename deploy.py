@@ -20,6 +20,19 @@ import observer
 
 gobject.threads_init()
 
+class ApplicationThread(threading.Thread):
+    def __init__(self, argList = None):
+        self.argList = argList
+        threading.Thread.__init__(self)
+
+    def run(self):
+        if argList:
+            window = MainUI(argList)
+        else:
+            window = MainUI()
+            
+        window.main()
+
 class StatusThread(threading.Thread, observer.Subject):
     def __init__(self, hashList, parent):
         self.hashList = hashList
@@ -449,14 +462,9 @@ def parseCommandLineArguments():
             argList.append(arg)            
         if (opt in ('-b', '--branch')):
             argList.append('branch')
-            argList.append(arg)            
+            argList.append(arg)
 
-    if argList:
-        window = MainUI(argList)
-    else:
-        window = MainUI()
-        
-    window.main()
+    ApplicationThread(argList).start()
 
 if __name__ == '__main__':
     parseCommandLineArguments()
