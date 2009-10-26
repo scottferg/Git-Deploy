@@ -3,9 +3,6 @@
 import pygtk
 pygtk.require("2.0")
 import gtk
-import gtk.glade
-import gobject
-import pango
 
 import os, sys
 import getopt
@@ -18,7 +15,7 @@ import graph
 from progressWindowDialog import ProgressWindowDialog
 import observer
 
-gobject.threads_init()
+gtk.gdk.threads_init()
 
 class ApplicationThread(threading.Thread):
     def __init__(self, argList = None):
@@ -26,12 +23,14 @@ class ApplicationThread(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
-        if argList:
-            window = MainUI(argList)
+        if self.argList:
+            window = MainUI(self.argList)
         else:
             window = MainUI()
             
+        gtk.gdk.threads_enter()
         window.main()
+        gtk.gdk.threads_leave()
 
 class StatusThread(threading.Thread, observer.Subject):
     def __init__(self, hashList, parent):
@@ -41,6 +40,7 @@ class StatusThread(threading.Thread, observer.Subject):
         self.attach(parent)
 
     def run(self):
+        gtk.gdk.threads_enter()
         # Stash first, so that we don't accidentally overwrite anything
         gitHandler.prepareBranch()
 
@@ -55,6 +55,7 @@ class StatusThread(threading.Thread, observer.Subject):
         gitHandler.cleanBranch()
         # Restore the working branch
         gitHandler.restoreBranch()
+        gtk.gdk.threads_leave()
 
 class MainUI(observer.Observer):
 
