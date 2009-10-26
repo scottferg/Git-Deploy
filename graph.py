@@ -90,7 +90,7 @@ class Graph(gtk.DrawingArea):
 
         return            
 
-    def _drawEdge(self, node, context, edgeColor):
+    def _drawEdge(self, node, context):
         '''
         Draws the edges for a given node
         '''
@@ -112,9 +112,9 @@ class Graph(gtk.DrawingArea):
                     elif origin[1] > destination[1]:
                         context.curve_to(origin[0] - 10, origin[1], 
                                          origin[0] - 10, origin[1] - 20, 
-                                         destination[0] - 2, destination[1] + 5)
+                                         destination[0], destination[1])
                     else:
-                        context.curve_to(origin[0] - 7, origin[1] + 5, 
+                        context.curve_to(origin[0] - 10, origin[1], 
                                          origin[0] - 15, origin[1], 
                                          destination[0], destination[1])
 
@@ -146,6 +146,7 @@ class Graph(gtk.DrawingArea):
 
     def __init__(self, commitList):
         super(gtk.DrawingArea, self).__init__()
+        self.set_size_request(350, 360)
         self.commitList = commitList 
 
 class Node:
