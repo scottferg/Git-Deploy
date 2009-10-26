@@ -5,6 +5,9 @@ import gtk.glade
 import gobject
 import cairo
 
+import git
+
+import os
 import math
 
 # Create a GTK+ widget on which we will draw using Cairo
@@ -23,6 +26,8 @@ class Graph(gtk.DrawingArea):
                           event.area.width, 
                           event.area.height)
         context.clip()
+
+        self.set_size_request(event.area.width, event.area.height)
 
         self.draw(context, *self.window.get_size())
 
@@ -44,7 +49,7 @@ class Graph(gtk.DrawingArea):
 
         for node,children in self.commitList.items():
             # Draw the nodes
-            self._drawGraph(node, 15, height / 2, context)
+            self._drawGraph(node, 15, (height / 2) + 50, context)
             # Draw the edges
             self._drawEdge(node, context)
 
@@ -76,9 +81,12 @@ class Graph(gtk.DrawingArea):
         context.stroke()
 
         # Draw the children
-        for child in self.commitList[node]:
-            self._drawGraph(child, offset + 20, height, context, node)
-            height = height - 50
+        try:
+            for child in self.commitList[node]:
+                self._drawGraph(child, offset + 20, height, context, node)
+                height = height - 50
+        except KeyError:
+            pass
 
         return            
 
@@ -91,25 +99,28 @@ class Graph(gtk.DrawingArea):
         # If we have a parent, connect to it with a line
         if parentNode:
             for parent in parentNode:
-                origin = self.drawnNodes[node]
-                destination = self.drawnNodes[parent]
+                try:
+                    origin = self.drawnNodes[node]
+                    destination = self.drawnNodes[parent]
 
-                self.setAxisColor(1)
+                    self.setAxisColor(1)
 
-                # If both nodes are at the same height draw a line
-                if origin[1] == destination[1]:
-                    context.move_to(origin[0] - 10, origin[1])
-                    context.line_to(destination[0], destination[1])
-                elif origin[1] > destination[1]:
-                    context.curve_to(origin[0] - 15, origin[1], 
-                                     origin[0] - 7, origin[1] + 5, 
-                                     destination[0] - 2, destination[1] + 5)
-                else:
-                    context.curve_to(origin[0] - 7, origin[1] + 5, 
-                                     origin[0] - 15, origin[1], 
-                                     destination[0], destination[1])
+                    # If both nodes are at the same height draw a line
+                    if origin[1] == destination[1]:
+                        context.move_to(origin[0] - 10, origin[1])
+                        context.line_to(destination[0], destination[1])
+                    elif origin[1] > destination[1]:
+                        context.curve_to(origin[0] - 10, origin[1], 
+                                         origin[0] - 10, origin[1] - 20, 
+                                         destination[0] - 2, destination[1] + 5)
+                    else:
+                        context.curve_to(origin[0] - 7, origin[1] + 5, 
+                                         origin[0] - 15, origin[1], 
+                                         destination[0], destination[1])
 
-                context.stroke()
+                    context.stroke()
+                except KeyError:
+                    pass
 
         return context
 
@@ -180,6 +191,7 @@ def drawCairoGraph(commitList):
 
 def buildCommitList():
 
+    '''
     graph = {'A': ['B'],
              'B': ['C'],
              'C': ['D', 'E'],
@@ -192,6 +204,21 @@ def buildCommitList():
              'J': [],
              'K': []
             }
+
+    return graph
+    '''
+    repo = git.Repo(os.getcwd())
+    commits = repo.commits(start = repo.active_branch, max_count = 100)
+    commits.reverse()
+
+    graph = {}
+
+    for commit in commits:
+        graph[commit.id[:10]] = []
+        
+        if commit.parents:
+            for parent in commit.parents:
+                graph[commit.id[:10]].append(parent.id[:10])
 
     return graph
 

@@ -14,6 +14,7 @@ import glob
 
 import gitHandler
 import fileListWindow
+import graph
 from progressWindowDialog import ProgressWindowDialog
 import observer
 
@@ -404,7 +405,7 @@ class MainUI(observer.Observer):
         self.wndScrolledWindow.set_policy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
-        # self.graphWindow.add_with_viewport(graph.Graph(graph.readGitLog()))
+        self.graphWindow.add_with_viewport(graph.Graph(graph.buildCommitList()))
 
         # Attach event handlers
         self.cmbSelectBranch.connect('changed', self.onBranchChanged)
