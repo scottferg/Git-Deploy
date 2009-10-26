@@ -37,11 +37,17 @@ class Graph(gtk.DrawingArea):
         context.rectangle(0, 0, width, height)
         context.fill()
 
+        self.baseHeight = int(math.floor(height / 2)) + 50
+
         axisColor = []
         axisColor.append([0.47, 0.1, 0.65])
         axisColor.append([0.4, 0.4, 0])
         axisColor.append([0.65, 0.43, 0.1])
         axisColor.append([0.18, 0.05, 0.97])
+        axisColor.insert(self.baseHeight, [0.47, 0.1, 0.65])
+        axisColor.insert(self.baseHeight - 50, [0.4, 0.4, 0])
+        axisColor.insert(self.baseHeight - 100, [0.65, 0.43, 0.1])
+        axisColor.insert(self.baseHeight - 150, [0.18, 0.05, 0.97])
 
         self.setAxisColor = lambda count: context.set_source_rgb(axisColor[count][0], axisColor[count][1], axisColor[count][2])
 
@@ -49,9 +55,12 @@ class Graph(gtk.DrawingArea):
 
         for node,children in self.commitList.items():
             # Draw the nodes
-            self._drawGraph(node, 15, (height / 2) + 50, context)
+            self._drawGraph(node, 15, self.baseHeight, context)
             # Draw the edges
             self._drawEdge(node, context)
+
+        width, height = self.window.get_size()
+        self.set_size_request(width, height)
 
     def _drawGraph(self, node, offset, height, context, parentNode = None):
         '''
@@ -103,7 +112,8 @@ class Graph(gtk.DrawingArea):
                     origin = self.drawnNodes[node]
                     destination = self.drawnNodes[parent]
 
-                    self.setAxisColor(1)
+#                    self.setAxisColor(int(destination[1]))
+                    self.setAxisColor(0)
 
                     # If both nodes are at the same height draw a line
                     if origin[1] == destination[1]:
@@ -146,7 +156,6 @@ class Graph(gtk.DrawingArea):
 
     def __init__(self, commitList):
         super(gtk.DrawingArea, self).__init__()
-        self.set_size_request(350, 360)
         self.commitList = commitList 
 
 class Node:
