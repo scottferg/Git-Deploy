@@ -13,24 +13,41 @@ import gitHandler
 import fileListWindow
 import graph
 from progressWindowDialog import ProgressWindowDialog
+from progressWindowDialog import PulseWindowDialog
 import observer
 
 gtk.gdk.threads_init()
 
-class ApplicationThread(threading.Thread):
-    def __init__(self, argList = None):
-        self.argList = argList
+class ProcessListThread(threading.Thread, observer.Subject):
+    def __init__(self, list, parent):
+        threading.Thread.__init__(self)
+        observer.Subject.__init__(self)
+        self.list = list
+        self.attach(parent)
+
+    def run(self):
+        fraction = (1.0 / len(self.list))
+
+        for commit in self.list:
+            self.notify(True, commit, fraction)
+        self.notify(False)
+
+    def __repr__(self):
+        return '<%s object>' % (self.__class__.__name__)
+
+class PopupThread(threading.Thread, observer.Observer):
+    def __init__(self, window):
+        self.window = window
         threading.Thread.__init__(self)
 
     def run(self):
-        if self.argList:
-            window = MainUI(self.argList)
-        else:
-            window = MainUI()
-            
-        gtk.gdk.threads_enter()
-        window.main()
-        gtk.gdk.threads_leave()
+        self.window.show()
+
+    def update(self, *args):
+        self.window.update(args)
+
+    def __repr__(self):
+        return '<%s object>' % (self.__class__.__name__)
 
 class StatusThread(threading.Thread, observer.Subject):
     def __init__(self, hashList, parent):
@@ -40,7 +57,6 @@ class StatusThread(threading.Thread, observer.Subject):
         self.attach(parent)
 
     def run(self):
-        gtk.gdk.threads_enter()
         # Stash first, so that we don't accidentally overwrite anything
         gitHandler.prepareBranch()
 
@@ -55,7 +71,9 @@ class StatusThread(threading.Thread, observer.Subject):
         gitHandler.cleanBranch()
         # Restore the working branch
         gitHandler.restoreBranch()
-        gtk.gdk.threads_leave()
+
+    def __repr__(self):
+        return '<%s object>' % (self.__class__.__name__)
 
 class MainUI(observer.Observer):
 
@@ -295,7 +313,7 @@ class MainUI(observer.Observer):
                     # If the file is not found, add it to the list
                     fileList.append(file)
 
-        self.fileListWindow = fileListWindow.FileListWindow('\n'.join(['%s' % x for x in sorted(fileList)]))
+        PopupThread(fileListWindow.FileListWindow('\n'.join(['%s' % x for x in sorted(fileList)]))).start()
 
         return
 
@@ -361,23 +379,38 @@ class MainUI(observer.Observer):
         return
 
     def update(self, *args):
-        status = gtk.STOCK_DIALOG_ERROR
-    
-        if args[1]:
-            status = gtk.STOCK_APPLY
-
-        iter = self.listStore.get_iter_first()
-
-        # Find the commit in the list, and set the status
-        while iter:
-            currentHash = self.listStore.get_value(iter, 0)
-
-            if currentHash == args[2][:10]:
-                self.listStore.set_value(iter, 2, status)
-                break
-            
-            iter = self.listStore.iter_next(iter)
+        if type(args[0]) == StatusThread:
+            status = gtk.STOCK_DIALOG_ERROR
         
+            if args[1]:
+                status = gtk.STOCK_APPLY
+
+            iter = self.listStore.get_iter_first()
+
+            # Find the commit in the list, and set the status
+            while iter:
+                currentHash = self.listStore.get_value(iter, 0)
+
+                if currentHash == args[2][:10]:
+                    self.listStore.set_value(iter, 2, status)
+                    break
+                
+                iter = self.listStore.iter_next(iter)
+        elif type(args[0]) == ProcessListThread and args[1]:
+            self._addCommit(args[2])
+
+            currentProgress = self.prgOperationProgress.get_fraction() + args[3]
+
+            if currentProgress > 1:
+                currentProgress = 1.0
+
+            self.prgOperationProgress.set_text('Adding commits...')
+            self.prgOperationProgress.set_fraction(currentProgress)
+        elif type(args[0]) == ProcessListThread:
+            self._checkCommitStatus()
+            self.prgOperationProgress.set_text('')
+            self.prgOperationProgress.set_fraction(0.0)
+
         return
 
     def __init__(self, *args):
@@ -391,6 +424,7 @@ class MainUI(observer.Observer):
         self.wndScrolledWindow = glade.get_widget('wndScrolledWindow')
         self.graphWindow = glade.get_widget('graphWindow')
         self.hbxBranchBox = glade.get_widget('hbxBranchBox')
+        self.prgOperationProgress = glade.get_widget('prgOperation')
         self.commitContext = glade.get_widget('commitContext')
         self.window = glade.get_widget('mainWindow')
 
@@ -420,7 +454,7 @@ class MainUI(observer.Observer):
         self.wndScrolledWindow.add_with_viewport(self.treeView)
 
         self.graphWindow.add_with_viewport(graph.Graph(graph.buildCommitList()))
-
+    
         # Attach event handlers
         self.cmbSelectBranch.connect('changed', self.onBranchChanged)
         self.selectedCommit.connect('changed', self.onCommitSelected)
@@ -430,17 +464,17 @@ class MainUI(observer.Observer):
 
         # Display the window
         self.window.show_all()
+        
+        self.prgOperationProgress.set_fraction(0.0)
 
         # Parse command line arguments
         if args:
             if args[0][0] == 'tag':
-                pass
-                for commit in gitHandler.getCommitsSinceTag(args[0][1]):
-                    self._addCommit(commit)
-                self._checkCommitStatus()
+                print 'Processing tags'
+                ProcessListThread(gitHandler.getCommitsSinceTag(args[0][1]), self).start()
+                print 'Done processing tag'
             elif args[0][0] == 'commit':
                 self._addCommit(args[0][1], True)
-                self._checkCommitStatus()
             elif args[0][0] == 'branch':
                 for commit in gitHandler.getBranch(args[0][1]):
                     self._addCommit(commit)
@@ -465,7 +499,12 @@ def parseCommandLineArguments():
             argList.append('branch')
             argList.append(arg)
 
-    ApplicationThread(argList).start()
+    if argList:
+        window = MainUI(argList)
+    else:
+        window = MainUI()
+
+    window.main()
 
 if __name__ == '__main__':
     parseCommandLineArguments()

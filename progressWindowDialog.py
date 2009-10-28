@@ -9,7 +9,7 @@ import observer
 import threading
 import os,sys
 
-gobject.threads_init()
+gtk.gdk.threads_init()
 
 class OperationThread(threading.Thread, observer.Subject):
     def __init__(self, operation, params, parent):
@@ -33,6 +33,34 @@ class OperationThread(threading.Thread, observer.Subject):
         else:
             self.notify(False)
 
+class PulseWindowDialog(observer.Observer):
+    def update(self, *args):
+        print 'Update'
+        self.prgOperationProgress.pulse()
+        
+        if self.prgOperationProgress.get_fraction() == 1.0:
+            pass
+    
+    def show(self):
+        print 'Show!'
+        # Display the window
+        self.window.show_all()
+
+    def __init__(self, operationName, pulse, parent):
+        # Pull widgets from Glade
+        glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
+
+        self.prgOperationProgress = glade.get_widget('prgOperationProgress')
+        self.lblTitle = glade.get_widget('lblTitle')
+        self.window = glade.get_widget('wndOperationDialog')
+
+        self.lblTitle.set_text('<b>%s</b>' % operationName)
+        self.lblTitle.set_use_markup(True)
+
+        self.prgOperationProgress.set_pulse_step(pulse)
+
+        glade.signal_autoconnect(self)
+
 class ProgressWindowDialog(observer.Observer):
     def _performOperation(self):
         OperationThread(self.operation, self.param, self).start()
@@ -53,6 +81,10 @@ class ProgressWindowDialog(observer.Observer):
             self.prgOperationProgress.set_fraction(1)
             self.btnOkay.set_sensitive(True)
 
+    def show(self):
+        # Display the window
+        self.window.show_all()
+
     def __init__(self, operationName, operation, param = None):
         # Pull widgets from Glade
         glade = gtk.glade.XML(os.path.abspath(sys.path[0]) + '/glade/mainWindow.glade')
@@ -60,7 +92,7 @@ class ProgressWindowDialog(observer.Observer):
         self.btnOkay = glade.get_widget('btnOkay')
         self.prgOperationProgress = glade.get_widget('prgOperationProgress')
         self.lblTitle = glade.get_widget('lblTitle')
-        self.window = glade.get_widget('wndProgressDialog')
+        self.window = glade.get_widget('wndOperationDialog')
 
         self.window.connect('show', self.onWindowShow)
 
@@ -71,6 +103,3 @@ class ProgressWindowDialog(observer.Observer):
 
         self.operation = operation
         self.param = param
-
-        # Display the window
-        self.window.show_all()
