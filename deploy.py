@@ -13,7 +13,6 @@ import gitHandler
 import fileListWindow
 import graph
 from progressWindowDialog import ProgressWindowDialog
-from progressWindowDialog import PulseWindowDialog
 import observer
 
 gtk.gdk.threads_init()
@@ -35,20 +34,6 @@ class ProcessListThread(threading.Thread, observer.Subject):
     def __repr__(self):
         return '<%s object>' % (self.__class__.__name__)
 
-class PopupThread(threading.Thread, observer.Observer):
-    def __init__(self, window):
-        self.window = window
-        threading.Thread.__init__(self)
-
-    def run(self):
-        self.window.show()
-
-    def update(self, *args):
-        self.window.update(args)
-
-    def __repr__(self):
-        return '<%s object>' % (self.__class__.__name__)
-
 class StatusThread(threading.Thread, observer.Subject):
     def __init__(self, hashList, parent):
         self.hashList = hashList
@@ -60,13 +45,15 @@ class StatusThread(threading.Thread, observer.Subject):
         # Stash first, so that we don't accidentally overwrite anything
         gitHandler.prepareBranch()
 
+        fraction = (1.0 / len(self.hashList))
+
         for hash in self.hashList:
             result = gitHandler.cherryPickCommit(hash, True)
 
             if result:
-                self.notify(True, hash)
+                self.notify(True, hash, fraction)
             else:
-                self.notify(False, hash)
+                self.notify(False, hash, fraction)
 
         gitHandler.cleanBranch()
         # Restore the working branch
@@ -313,7 +300,7 @@ class MainUI(observer.Observer):
                     # If the file is not found, add it to the list
                     fileList.append(file)
 
-        PopupThread(fileListWindow.FileListWindow('\n'.join(['%s' % x for x in sorted(fileList)]))).start()
+        fileListWindow.FileListWindow('\n'.join(['%s' % x for x in sorted(fileList)]))
 
         return
 
@@ -379,6 +366,16 @@ class MainUI(observer.Observer):
         return
 
     def update(self, *args):
+        def updateProgressBar(pulse):
+            currentProgress = self.prgOperationProgress.get_fraction() + pulse
+
+            if currentProgress > 1:
+                currentProgress = 0.0
+
+            self.prgOperationProgress.set_text('Analyzing commits...')
+            self.prgOperationProgress.set_fraction(currentProgress)
+
+        # If we are analyzing the status of each commit
         if type(args[0]) == StatusThread:
             status = gtk.STOCK_DIALOG_ERROR
         
@@ -396,16 +393,14 @@ class MainUI(observer.Observer):
                     break
                 
                 iter = self.listStore.iter_next(iter)
+
+            updateProgressBar(args[3])
+        # Are we looking at some generic process?
         elif type(args[0]) == ProcessListThread and args[1]:
             self._addCommit(args[2])
 
-            currentProgress = self.prgOperationProgress.get_fraction() + args[3]
-
-            if currentProgress > 1:
-                currentProgress = 1.0
-
-            self.prgOperationProgress.set_text('Adding commits...')
-            self.prgOperationProgress.set_fraction(currentProgress)
+            updateProgressBar(args[3])
+        # Otherwise, we've finished
         elif type(args[0]) == ProcessListThread:
             self._checkCommitStatus()
             self.prgOperationProgress.set_text('')
@@ -470,9 +465,7 @@ class MainUI(observer.Observer):
         # Parse command line arguments
         if args:
             if args[0][0] == 'tag':
-                print 'Processing tags'
                 ProcessListThread(gitHandler.getCommitsSinceTag(args[0][1]), self).start()
-                print 'Done processing tag'
             elif args[0][0] == 'commit':
                 self._addCommit(args[0][1], True)
             elif args[0][0] == 'branch':
