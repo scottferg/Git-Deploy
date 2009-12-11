@@ -53,7 +53,11 @@ def findChangedFiles(commit):
     '''
     Finds all of the affected files within a given commit
     '''
-    return ['%s' % diff.a_path for diff in repo.commit(commit).diffs]
+
+    try:
+        return ['%s' % diff.a_path for diff in repo.commit(commit).diffs]
+    except AttributeError:
+        return []
 
 def getCommitMessage(commit):
     '''
@@ -75,7 +79,7 @@ def getBranch(branch):
     Returns all commits for the given branch
     '''
     try:
-        commitList = repo.commits(start=branch, max_count=20)
+        commitList = repo.commits(start = branch, max_count = 20)
 
         result = [commit.id for commit in commitList]
     except git.errors.GitCommandError:
