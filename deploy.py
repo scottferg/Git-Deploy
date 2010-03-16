@@ -48,16 +48,17 @@ class StatusThread(threading.Thread, observer.Subject):
         fraction = (1.0 / len(self.hashList))
 
         for hash in self.hashList:
-            result = gitHandler.cherryPickCommit(hash, True)
+            self.notify(True, hash, fraction)
+            # result = gitHandler.cherryPickCommit(hash, True)
 
-            if result:
-                self.notify(True, hash, fraction)
-            else:
-                self.notify(False, hash, fraction)
+            # if result:
+            #     self.notify(True, hash, fraction)
+            # else:
+            #     self.notify(False, hash, fraction)
 
-        gitHandler.cleanBranch()
+        # gitHandler.cleanBranch()
         # Restore the working branch
-        gitHandler.restoreBranch()
+        # gitHandler.restoreBranch()
 
     def __repr__(self):
         return '<%s object>' % (self.__class__.__name__)

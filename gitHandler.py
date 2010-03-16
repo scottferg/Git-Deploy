@@ -134,10 +134,16 @@ def cherryPickCommit(hash, noCommit = False):
     return True
 
 def cleanBranch(force = False):
+    '''
+    Resets a branch with unstaged changes
+    '''
     if repo.is_dirty or force:
         cmd.execute('git reset --hard')
 
 def checkoutBranch(branch):
+    '''
+    Checks out a new branch
+    '''
     try:
         # head = open('.git/HEAD', 'w')
         # head.write('ref: refs/heads/%s' % branch)
@@ -147,16 +153,46 @@ def checkoutBranch(branch):
         return False
 
     return
+
+def getFileList(tag):
+    '''
+    Returns the file list of all changed files since the given tag
+    '''
+    result = []
+    
+    commitList = getCommitsSinceTag(tag)
+
+    for commit in commitList:
+        fileList = findChangedFiles(commit)
+
+        # Don't add the same file twice
+        for file in fileList:
+            try:
+                result.index(file)
+            except ValueError:
+                result.append(file)
+
+    return result
     
 def main():
-    options, remainder = getopt.getopt(sys.argv[1:], 'c:', 'commit=');
+    options, remainder = getopt.getopt(sys.argv[1:], 'c:t:', ['commit=','tag=']);
 
     for opt, arg in options:
+        target = arg
+
         if (opt in ('-c', '--commit')):
-            commit = arg
+            option = 'commit'
+        if (opt in ('-t', '--tag')):
+            option = 'tag'
 
     try:
-    	print "\n".join(["%s" % x for x in findChangedFiles(commit)])
+        if not target or not option:
+            raise UnboundLocalError
+
+        if option == 'commit':
+            print '\n'.join(['%s' % x for x in findChangedFiles(target)])
+        elif option == 'tag':
+            print '\n'.join(['%s' % x for x in getFileList(target)])
     except UnboundLocalError:
         print 'Usage: git_handler.py ([-c|--commit][-t|--tag]) <commit|tag>'
     except TypeError:
